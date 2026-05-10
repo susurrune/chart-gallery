@@ -1,0 +1,13 @@
+{
+  "name": "chart-gallery",
+  "version": "1.0.0",
+  "description": "数据分析图表展示站",
+  "scripts": {
+    "build": "node build.js",
+    "start": "node build.js && node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18"
+  }
+}

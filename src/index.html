@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chart Gallery</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+    background: #0f0f13;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+  .navbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 32px;
+    background: #1a1a24;
+    border-bottom: 1px solid #2a2a3a;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .navbar h1 { font-size: 18px; font-weight: 600; color: #f0f0f0; }
+  .navbar h1 span { color: #d97757; }
+  .navbar .count { font-size: 13px; color: #666; background: #2a2a3a; padding: 4px 12px; border-radius: 20px; }
+  .search-bar { display: flex; gap: 12px; align-items: center; }
+  .search-bar input {
+    background: #2a2a3a; border: 1px solid #3a3a4a; border-radius: 8px;
+    padding: 8px 14px; color: #e0e0e0; font-size: 13px; width: 240px; outline: none;
+  }
+  .search-bar input:focus { border-color: #d97757; }
+  .search-bar input::placeholder { color: #555; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 32px; }
+
+  .stats { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-card {
+    background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 10px;
+    padding: 16px 20px; flex: 1; min-width: 120px;
+  }
+  .stat-card .num { font-size: 28px; font-weight: 700; color: #f0f0f0; }
+  .stat-card .num span { color: #d97757; }
+  .stat-card .label { font-size: 12px; color: #666; margin-top: 4px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+  .card {
+    background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 12px;
+    overflow: hidden; transition: all 0.2s; cursor: pointer;
+  }
+  .card:hover {
+    border-color: #d97757; transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .card-preview {
+    width: 100%; height: 200px; border: none; background: #12121a; pointer-events: none;
+  }
+  .card-body { padding: 14px 16px; border-top: 1px solid #2a2a3a; }
+  .card-body .title {
+    font-size: 14px; font-weight: 500; color: #f0f0f0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-body .desc {
+    font-size: 12px; color: #666; margin-top: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-body .meta-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 8px; font-size: 11px; color: #444;
+  }
+  .card-body .meta-row .tag { background: #2a2a3a; padding: 2px 8px; border-radius: 4px; color: #888; }
+  .card-body .actions { display: flex; gap: 8px; margin-top: 8px; }
+  .card-body .actions button {
+    flex: 1; padding: 6px 0; border-radius: 6px; border: none;
+    font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s;
+  }
+  .btn-view { background: #d97757; color: #fff; }
+  .btn-view:hover { background: #c06848; }
+  .btn-open { background: #2a2a3a; color: #aaa; }
+  .btn-open:hover { background: #3a3a4a; color: #f0f0f0; }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 1000; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; flex-direction: column; }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .modal-header h2 { font-size: 16px; color: #f0f0f0; }
+  .modal-close { background: none; border: none; color: #666; font-size: 22px; cursor: pointer; padding: 4px 10px; border-radius: 6px; }
+  .modal-close:hover { background: #2a2a3a; color: #f0f0f0; }
+  .modal-body { flex: 1; border: none; border-radius: 8px; background: #fff; width: 100%; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .modal-actions a { padding: 8px 20px; border-radius: 8px; font-size: 13px; text-decoration: none; font-family: inherit; }
+  .modal-actions .open-tab { background: #d97757; color: #fff; }
+  .modal-actions .open-tab:hover { background: #c06848; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #555; }
+  .empty-state h2 { font-size: 18px; margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; }
+
+  @media (max-width: 768px) {
+    .container { padding: 16px; }
+    .navbar { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+    .search-bar input { width: 160px; }
+    .grid { grid-template-columns: 1fr; }
+    .modal-overlay { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <h1><span>≡</span> Chart Gallery</h1>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="搜索图表..." oninput="render()">
+    <span class="count" id="totalCount">0 个图表</span>
+  </div>
+</div>
+
+<div class="container">
+  <div class="stats">
+    <div class="stat-card">
+      <div class="num" id="statTotal">0</div>
+      <div class="label">图表总数</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="statWeek">0</div>
+      <div class="label">最近 7 天新增</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="statSize">0 MB</div>
+      <div class="label">总大小</div>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal-header">
+    <h2 id="modalTitle">图表</h2>
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+  </div>
+  <iframe class="modal-body" id="modalIframe"></iframe>
+  <div class="modal-actions">
+    <a class="open-tab" id="modalOpenTab" target="_blank">在新标签页打开</a>
+  </div>
+</div>
+
+<!-- 静态构建时注入图表数据 -->
+<script id="chartsData" type="application/json">__CHARTS_DATA__</script>
+<script>
+const BASE = document.querySelector('base')?.getAttribute('href') || '.';
+let charts = [];
+
+try {
+  const raw = document.getElementById('chartsData').textContent;
+  if (raw && raw !== '__CHARTS_DATA__') {
+    charts = JSON.parse(raw);
+  }
+} catch(e) {}
+
+async function loadCharts() {
+  if (charts.length > 0) { render(); return; }
+  try {
+    const res = await fetch('./api/charts');
+    const data = await res.json();
+    charts = data.charts || [];
+  } catch(e) {
+    document.getElementById('grid').innerHTML =
+      `<div class="empty-state"><h2>没有找到图表</h2><p>请先运行 build.js 生成静态文件</p></div>`;
+  }
+  render();
+}
+
+function render() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = charts.filter(c =>
+    c.title.toLowerCase().includes(q) ||
+    (c.description && c.description.toLowerCase().includes(q)) ||
+    c.filename.toLowerCase().includes(q)
+  );
+
+  const now = Date.now();
+  const weekAgo = now - 7 * 86400000;
+  const weekCount = charts.filter(c => new Date(c.mtime).getTime() > weekAgo).length;
+  const totalSize = charts.reduce((s, c) => s + c.size, 0);
+
+  document.getElementById('statTotal').textContent = charts.length;
+  document.getElementById('statWeek').textContent = weekCount;
+  document.getElementById('statSize').textContent = (totalSize / 1024 / 1024).toFixed(2);
+  document.getElementById('totalCount').textContent = `${charts.length} 个图表`;
+
+  const grid = document.getElementById('grid');
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><h2>没有匹配的图表</h2><p>试试其他搜索词</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(c => {
+    const sizeStr = c.size > 1024 ? `${(c.size / 1024).toFixed(1)} KB` : `${c.size} B`;
+    const dateStr = new Date(c.mtime).toLocaleDateString('zh-CN');
+    const chartPath = `./charts/${c.filename}`;
+    return `
+      <div class="card">
+        <iframe class="card-preview" src="${chartPath}" loading="lazy" sandbox="allow-scripts"></iframe>
+        <div class="card-body">
+          <div class="title" title="${escHtml(c.title)}">${escHtml(c.title)}</div>
+          <div class="desc">${escHtml(c.description) || escHtml(c.filename)}</div>
+          <div class="meta-row">
+            <span>${escHtml(c.date || dateStr)}</span>
+            <span class="tag">${sizeStr}</span>
+          </div>
+          <div class="actions">
+            <button class="btn-view" onclick="openModal('${chartPath}', '${escHtml(c.title)}')">预览</button>
+            <button class="btn-open" onclick="window.open('${chartPath}', '_blank')">新标签页</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function openModal(path, title) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalIframe').src = path;
+  document.getElementById('modalOpenTab').href = path;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.getElementById('modalIframe').src = '';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+loadCharts();
+</script>
+</body>
+</html>

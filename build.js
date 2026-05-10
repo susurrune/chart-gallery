@@ -1,0 +1,52 @@
+const fs = require('fs');
+const path = require('path');
+
+const CHARTS_DIR = path.resolve(__dirname, '..');      // D:\CludeCodePR
+const SRC_DIR = path.join(__dirname, 'src');
+const DIST_DIR = path.join(__dirname, 'dist');
+const CHARTS_OUT = path.join(DIST_DIR, 'charts');
+
+// 清理并重建 dist
+fs.rmSync(DIST_DIR, { recursive: true, force: true });
+fs.mkdirSync(CHARTS_OUT, { recursive: true });
+
+// 扫描 HTML 文件（跳过 gallery 目录自身）
+const files = fs.readdirSync(CHARTS_DIR)
+  .filter(f => f.endsWith('.html'))
+  .filter(f => !f.startsWith('gallery'));
+
+const charts = [];
+
+for (const f of files) {
+  const srcPath = path.join(CHARTS_DIR, f);
+  const stat = fs.statSync(srcPath);
+  const content = fs.readFileSync(srcPath, 'utf-8');
+
+  const titleMatch = content.match(/<title>([^<]+)<\/title>/);
+  const descMatch = content.match(/class="subtitle">([^<]+)<\/subtitle>/);
+  const timeMatch = content.match(/更新时间[：:]\s*([^<&]+)/) ||
+                    content.match(/生成时间[：:]\s*([^<&]+)/) ||
+                    content.match(/搜索时间[：:]\s*([^<&]+)/);
+
+  charts.push({
+    filename: f,
+    title: titleMatch ? titleMatch[1] : f.replace('.html', ''),
+    description: descMatch ? descMatch[1] : '',
+    size: stat.size,
+    mtime: stat.mtime.toISOString(),
+    date: timeMatch ? timeMatch[1].trim() : stat.mtime.toISOString().slice(0, 10),
+  });
+
+  // 复制图表文件
+  fs.copyFileSync(srcPath, path.join(CHARTS_OUT, f));
+  console.log(`  copy  ${f}`);
+}
+
+// 生成 index.html
+let template = fs.readFileSync(path.join(SRC_DIR, 'index.html'), 'utf-8');
+const json = JSON.stringify(charts, null, 2);
+template = template.replace('__CHARTS_DATA__', json);
+fs.writeFileSync(path.join(DIST_DIR, 'index.html'), template);
+
+const totalSize = (charts.reduce((s, c) => s + c.size, 0) / 1024).toFixed(0);
+console.log(`\n✓ 完成: ${charts.length} 个图表, ${totalSize} KB`);
