@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>主流 LLM Benchmark 排行 2026.05</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', -apple-system, sans-serif;
+    background: #f8f9fa;
+    color: #1a1a1a;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .header {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    border: 1px solid #e8e8e8;
+  }
+  .header h1 { font-size: 20px; font-weight: 600; color: #111; margin-bottom: 4px; }
+  .header .subtitle { font-size: 13px; color: #888; }
+  .header .meta { font-size: 12px; color: #aaa; margin-top: 8px; }
+  .tabs {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .tab {
+    padding: 7px 16px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #666;
+    background: #fff;
+    transition: all 0.15s;
+  }
+  .tab:hover { border-color: #3266ad; color: #3266ad; }
+  .tab.active {
+    background: #3266ad; color: #fff; border-color: #3266ad; font-weight: 500;
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid #e8e8e8;
+  }
+  .metric-card .label { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .metric-card .value { font-size: 22px; font-weight: 600; color: #111; }
+  .metric-card .sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .chart-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    border: 1px solid #e8e8e8;
+  }
+  .chart-card h2 {
+    font-size: 15px; font-weight: 500; color: #333; margin-bottom: 16px;
+  }
+  .chart-wrap { position: relative; width: 100%; }
+  .footer {
+    font-size: 12px; color: #aaa; text-align: center; margin-top: 8px; padding: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #141414; color: #e0e0e0; }
+    .header, .metric-card, .chart-card { background: #1e1e1e; border-color: #2d2d2d; }
+    .header h1, .metric-card .value { color: #f0f0f0; }
+    .tab { background: #1e1e1e; border-color: #3d3d3d; color: #aaa; }
+    .tab.active { background: #3266ad; color: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>主流 LLM Benchmark 对比 · 2026年5月</h1>
+  <div class="subtitle">GPT-5.5 · Claude Opus 4.7 · Gemini 3.1 Pro · DeepSeek V4-Pro · Grok 4.20</div>
+  <div class="meta">数据来源：llm-stats.com, openlm.ai, clickrank.ai, Artificial Analysis &nbsp;|&nbsp; 更新时间：2026-05-10</div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" onclick="switchTab('tab1', this)">综合能力</button>
+  <button class="tab" onclick="switchTab('tab2', this)">编程对比</button>
+  <button class="tab" onclick="switchTab('tab3', this)">性价比</button>
+  <button class="tab" onclick="switchTab('tab4', this)">雷达图</button>
+</div>
+
+<div class="metric-grid">
+  <div class="metric-card">
+    <div class="label">编程王者 (SWE-bench)</div>
+    <div class="value">80.9%</div>
+    <div class="sub">Claude Opus 4.7</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">推理之王 (GPQA)</div>
+    <div class="value">94.3%</div>
+    <div class="sub">Gemini 3.1 Pro</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">Agent 编码 (Terminal-Bench)</div>
+    <div class="value">82.7%</div>
+    <div class="sub">GPT-5.5</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">性价比之王</div>
+    <div class="value">$0.27/M</div>
+    <div class="sub">DeepSeek V4-Pro</div>
+  </div>
+</div>
+
+<!-- Tab 1: 综合能力 -->
+<div class="chart-card" id="tab1Content">
+  <h2>三大核心 Benchmark 对比</h2>
+  <div class="chart-wrap" style="height: 360px;">
+    <canvas id="chartTab1"></canvas>
+  </div>
+</div>
+
+<!-- Tab 2: 编程对比 -->
+<div class="chart-card" id="tab2Content" style="display:none">
+  <h2>编程能力细化对比</h2>
+  <div class="chart-wrap" style="height: 360px;">
+    <canvas id="chartTab2"></canvas>
+  </div>
+</div>
+
+<!-- Tab 3: 性价比 -->
+<div class="chart-card" id="tab3Content" style="display:none">
+  <h2>输入价格 vs 综合评分（气泡大小 = 输出价格）</h2>
+  <div class="chart-wrap" style="height: 360px;">
+    <canvas id="chartTab3"></canvas>
+  </div>
+</div>
+
+<!-- Tab 4: 雷达图 -->
+<div class="chart-card" id="tab4Content" style="display:none">
+  <h2>五维能力雷达图</h2>
+  <div class="chart-wrap" style="height: 400px;">
+    <canvas id="chartTab4"></canvas>
+  </div>
+</div>
+
+<div class="footer">
+  数据来源：llm-stats.com, openlm.ai, clickrank.ai, Artificial Analysis &nbsp;·&nbsp; 生成时间：2026-05-10 &nbsp;·&nbsp; 分数来自多个 leaderboard 聚合，仅供参考
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const MODELS = {
+  'GPT-5.5':         { color: '#10a37f', org: 'OpenAI' },
+  'Claude Opus 4.7': { color: '#d97757', org: 'Anthropic' },
+  'Gemini 3.1 Pro':  { color: '#4285f4', org: 'Google' },
+  'DeepSeek V4-Pro': { color: '#4f46e5', org: 'DeepSeek' },
+  'Grok 4.20':       { color: '#1a1a1a', org: 'xAI' },
+};
+const MODEL_NAMES = Object.keys(MODELS);
+const COLORS = MODEL_NAMES.map(n => MODELS[n].color);
+
+// 综合能力数据
+const benchmarkData = {
+  labels: ['SWE-bench (编程)', 'GPQA Diamond (推理)', 'AIME 2026 (数学)'],
+  datasets: [
+    { label: 'GPT-5.5',         data: [79, 90, 96], backgroundColor: MODELS['GPT-5.5'].color },
+    { label: 'Claude Opus 4.7', data: [80.9, 94.2, 89.5], backgroundColor: MODELS['Claude Opus 4.7'].color },
+    { label: 'Gemini 3.1 Pro',  data: [77, 94.3, 92.3], backgroundColor: MODELS['Gemini 3.1 Pro'].color },
+    { label: 'DeepSeek V4-Pro', data: [80.6, 85, 88.9], backgroundColor: MODELS['DeepSeek V4-Pro'].color },
+    { label: 'Grok 4.20',       data: [72, 89, 90], backgroundColor: MODELS['Grok 4.20'].color },
+  ]
+};
+
+// 编程细化
+const codeData = {
+  labels: ['SWE-bench Verified', 'SWE-bench Pro', 'Terminal-Bench 2.0', 'HumanEval'],
+  datasets: [
+    { label: 'GPT-5.5',         data: [79, 61, 82.7, 95], backgroundColor: MODELS['GPT-5.5'].color },
+    { label: 'Claude Opus 4.7', data: [80.9, 64.3, 69.4, 95], backgroundColor: MODELS['Claude Opus 4.7'].color },
+    { label: 'Gemini 3.1 Pro',  data: [77, 55, 68.5, 92], backgroundColor: MODELS['Gemini 3.1 Pro'].color },
+    { label: 'DeepSeek V4-Pro', data: [80.6, 55.4, 75, 91], backgroundColor: MODELS['DeepSeek V4-Pro'].color },
+    { label: 'Grok 4.20',       data: [72, 52, 70, 90], backgroundColor: MODELS['Grok 4.20'].color },
+  ]
+};
+
+// 性价比数据 (scatter)
+const priceData = {
+  datasets: [
+    { label: 'GPT-5.5', data: [{ x: 15, y: 83, r: 22 }], backgroundColor: MODELS['GPT-5.5'].color },
+    { label: 'Claude Opus 4.7', data: [{ x: 5, y: 85, r: 18 }], backgroundColor: MODELS['Claude Opus 4.7'].color },
+    { label: 'Gemini 3.1 Pro', data: [{ x: 2, y: 82, r: 14 }], backgroundColor: MODELS['Gemini 3.1 Pro'].color },
+    { label: 'DeepSeek V4-Pro', data: [{ x: 0.27, y: 81, r: 10 }], backgroundColor: MODELS['DeepSeek V4-Pro'].color },
+    { label: 'Grok 4.20', data: [{ x: 3, y: 79, r: 16 }], backgroundColor: MODELS['Grok 4.20'].color },
+  ]
+};
+
+// 雷达图
+const radarData = {
+  labels: ['推理 (GPQA)', '数学 (AIME)', '编程 (SWE-bench)', 'Agent 编码', '多模态'],
+  datasets: [
+    {
+      label: 'GPT-5.5',
+      data: [90, 96, 79, 82.7, 78],
+      borderColor: MODELS['GPT-5.5'].color,
+      backgroundColor: MODELS['GPT-5.5'].color + '20',
+    },
+    {
+      label: 'Claude Opus 4.7',
+      data: [94.2, 89.5, 80.9, 69.4, 77],
+      borderColor: MODELS['Claude Opus 4.7'].color,
+      backgroundColor: MODELS['Claude Opus 4.7'].color + '20',
+    },
+    {
+      label: 'Gemini 3.1 Pro',
+      data: [94.3, 92.3, 77, 68.5, 85],
+      borderColor: MODELS['Gemini 3.1 Pro'].color,
+      backgroundColor: MODELS['Gemini 3.1 Pro'].color + '20',
+    },
+    {
+      label: 'DeepSeek V4-Pro',
+      data: [85, 88.9, 80.6, 75, 70],
+      borderColor: MODELS['DeepSeek V4-Pro'].color,
+      backgroundColor: MODELS['DeepSeek V4-Pro'].color + '20',
+    },
+    {
+      label: 'Grok 4.20',
+      data: [89, 90, 72, 70, 75],
+      borderColor: MODELS['Grok 4.20'].color,
+      backgroundColor: MODELS['Grok 4.20'].color + '20',
+    },
+  ]
+};
+
+let charts = {};
+
+function buildGroupedBar(id, data) {
+  const ctx = document.getElementById(id).getContext('2d');
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, {
+    type: 'bar',
+    data: data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 12 }, padding: 16, usePointStyle: true } },
+        tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y}%` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#666' } },
+        y: { min: 40, max: 100, grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { font: { size: 11 }, color: '#888', callback: (v) => v + '%' } }
+      }
+    }
+  });
+}
+
+function buildScatter(id, data) {
+  const ctx = document.getElementById(id).getContext('2d');
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, {
+    type: 'bubble',
+    data: data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 12 }, padding: 16, usePointStyle: true } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const d = ctx.raw;
+              return ` ${ctx.dataset.label}: 输入$${d.x}/M, 综合${d.y}分, 输出约$${(d.r * 1.8).toFixed(0)}/M`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'logarithmic',
+          title: { display: true, text: '输入价格 ($/M tokens)', color: '#888' },
+          grid: { color: 'rgba(128,128,128,0.1)' },
+          ticks: { font: { size: 11 }, color: '#888', callback: (v) => '$' + v }
+        },
+        y: { min: 70, max: 90, title: { display: true, text: '综合评分', color: '#888' }, grid: { color: 'rgba(128,128,128,0.1)' }, ticks: { font: { size: 11 }, color: '#888' } }
+      }
+    }
+  });
+}
+
+function buildRadar(id, data) {
+  const ctx = document.getElementById(id).getContext('2d');
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(ctx, {
+    type: 'radar',
+    data: data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 12 }, padding: 16, usePointStyle: true } }
+      },
+      scales: {
+        r: {
+          min: 60, max: 100,
+          ticks: { font: { size: 10 }, color: '#888', backdropColor: 'transparent' },
+          grid: { color: 'rgba(128,128,128,0.15)' },
+          angleLines: { color: 'rgba(128,128,128,0.15)' },
+          pointLabels: { font: { size: 12 }, color: '#555' }
+        }
+      }
+    }
+  });
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['tab1Content', 'tab2Content', 'tab3Content', 'tab4Content'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  if (tab === 'tab1') {
+    document.getElementById('tab1Content').style.display = 'block';
+    buildGroupedBar('chartTab1', benchmarkData);
+  } else if (tab === 'tab2') {
+    document.getElementById('tab2Content').style.display = 'block';
+    buildGroupedBar('chartTab2', codeData);
+  } else if (tab === 'tab3') {
+    document.getElementById('tab3Content').style.display = 'block';
+    buildScatter('chartTab3', priceData);
+  } else if (tab === 'tab4') {
+    document.getElementById('tab4Content').style.display = 'block';
+    buildRadar('chartTab4', radarData);
+  }
+}
+
+// 初始化
+buildGroupedBar('chartTab1', benchmarkData);
+</script>
+</body>
+</html>

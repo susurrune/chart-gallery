@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GitHub AI Agent Framework 排行榜 2026</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', -apple-system, sans-serif;
+    background: #f8f9fa;
+    color: #1a1a1a;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .header {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    border: 1px solid #e8e8e8;
+  }
+  .header h1 { font-size: 20px; font-weight: 600; color: #111; margin-bottom: 4px; }
+  .header .subtitle { font-size: 13px; color: #888; }
+  .header .meta { font-size: 12px; color: #aaa; margin-top: 8px; }
+  .tabs {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .tab {
+    padding: 7px 16px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #666;
+    background: #fff;
+    transition: all 0.15s;
+  }
+  .tab:hover { border-color: #3266ad; color: #3266ad; }
+  .tab.active {
+    background: #3266ad; color: #fff; border-color: #3266ad; font-weight: 500;
+  }
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 14px 16px;
+    border: 1px solid #e8e8e8;
+  }
+  .metric-card .label { font-size: 12px; color: #888; margin-bottom: 4px; }
+  .metric-card .value { font-size: 22px; font-weight: 600; color: #111; }
+  .metric-card .sub { font-size: 11px; color: #aaa; margin-top: 2px; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 16px;
+    margin-bottom: 12px; font-size: 13px; color: #555;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  .chart-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    border: 1px solid #e8e8e8;
+  }
+  .chart-card h2 {
+    font-size: 15px; font-weight: 500; color: #333; margin-bottom: 16px;
+  }
+  .chart-wrap { position: relative; width: 100%; }
+  .footer {
+    font-size: 12px; color: #aaa; text-align: center; margin-top: 8px; padding: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #141414; color: #e0e0e0; }
+    .header, .metric-card, .chart-card { background: #1e1e1e; border-color: #2d2d2d; }
+    .header h1, .metric-card .value { color: #f0f0f0; }
+    .tab { background: #1e1e1e; border-color: #3d3d3d; color: #aaa; }
+    .tab.active { background: #3266ad; color: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>GitHub AI Agent Framework 排行榜 2026</h1>
+  <div class="subtitle">Top 10 开源 AI Agent 框架 · 按 GitHub Star 数排序</div>
+  <div class="meta">数据来源：dev.to, GitHub Trending, You.com &nbsp;|&nbsp; 更新时间：2026-05-10</div>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" onclick="switchTab('tab1', this)">Star 排行</button>
+  <button class="tab" onclick="switchTab('tab2', this)">编程语言分布</button>
+</div>
+
+<div class="metric-grid">
+  <div class="metric-card">
+    <div class="label">Top 1 Star</div>
+    <div class="value">122.9K</div>
+    <div class="sub">LangChain</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">上榜最低</div>
+    <div class="value">19.0K</div>
+    <div class="sub">Mastra</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">Python 占比</div>
+    <div class="value">80%</div>
+    <div class="sub">8/10 框架</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">微软出品</div>
+    <div class="value">2 个</div>
+    <div class="sub">AutoGen + Semantic Kernel</div>
+  </div>
+</div>
+
+<div class="chart-card">
+  <h2 id="mainTitle">GitHub Star 数对比</h2>
+  <div class="legend" id="legend"></div>
+  <div class="chart-wrap" style="height: 400px;">
+    <canvas id="mainChart" role="img" aria-label="AI Agent Framework Star 排行条形图"></canvas>
+  </div>
+</div>
+
+<div class="chart-card" id="secondaryCard">
+  <h2>编程语言分布</h2>
+  <div class="chart-wrap" style="height: 260px;">
+    <canvas id="secondaryChart" role="img" aria-label="语言分布环形图"></canvas>
+  </div>
+</div>
+
+<div class="footer">
+  数据来源：dev.to, GitHub Trending, You.com &nbsp;·&nbsp; 生成时间：2026-05-10 &nbsp;·&nbsp; Star 数为近似值，可能实时波动
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const COLORS = {
+  python: '#1d9e75',
+  typescript: '#3266ad',
+  multi: '#d85a30',
+};
+
+const frameworks = [
+  { name: 'LangChain', stars: 122850, lang: 'Python', org: 'LangChain' },
+  { name: 'MetaGPT', stars: 61919, lang: 'Python', org: 'DeepWisdom' },
+  { name: 'AutoGen', stars: 52927, lang: 'Python', org: 'Microsoft' },
+  { name: 'LlamaIndex', stars: 46100, lang: 'Python', org: 'LlamaIndex' },
+  { name: 'CrewAI', stars: 41871, lang: 'Python', org: 'CrewAI' },
+  { name: 'Agno', stars: 36414, lang: 'Python', org: 'Agno' },
+  { name: 'Semantic Kernel', stars: 27000, lang: 'C#/Python', org: 'Microsoft' },
+  { name: 'Haystack', stars: 23741, lang: 'Python', org: 'deepset' },
+  { name: 'Vercel AI SDK', stars: 20400, lang: 'TypeScript', org: 'Vercel' },
+  { name: 'Mastra', stars: 19021, lang: 'TypeScript', org: 'Mastra' },
+];
+
+function getLangColor(lang) {
+  if (lang.includes('TypeScript')) return COLORS.typescript;
+  if (lang.includes('C#')) return COLORS.multi;
+  return COLORS.python;
+}
+
+let mainChart, secondaryChart;
+
+function renderLegend(labels) {
+  const el = document.getElementById('legend');
+  el.innerHTML = labels.map(item =>
+    `<span class="legend-item"><span class="legend-dot" style="background:${item.color}"></span>${item.label}</span>`
+  ).join('');
+}
+
+function buildMainChart() {
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (mainChart) mainChart.destroy();
+
+  const labels = frameworks.map(f => f.name).reverse();
+  const data = frameworks.map(f => f.stars / 1000).reverse();
+  const colors = frameworks.map(f => getLangColor(f.lang)).reverse();
+  const orgs = frameworks.map(f => f.org).reverse();
+
+  mainChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors,
+        borderRadius: 4,
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.parsed.x.toFixed(0)}K stars`
+          }
+        }
+      },
+      scales: {
+        x: {
+          min: 0, max: 140,
+          title: { display: true, text: 'Stars (K)', color: '#888', font: { size: 11 } },
+          grid: { color: 'rgba(128,128,128,0.1)' },
+          ticks: { font: { size: 12 }, color: '#888', callback: (v) => v + 'K' }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { size: 12 }, color: '#444' }
+        }
+      }
+    }
+  });
+}
+
+function buildSecondaryChart() {
+  const ctx = document.getElementById('secondaryChart').getContext('2d');
+  if (secondaryChart) secondaryChart.destroy();
+
+  const langCount = {};
+  frameworks.forEach(f => {
+    const key = f.lang.includes('TypeScript') ? 'TypeScript' : f.lang.includes('C#') ? 'C# / Python' : 'Python';
+    langCount[key] = (langCount[key] || 0) + 1;
+  });
+
+  const labels = Object.keys(langCount);
+  const data = Object.values(langCount);
+  const colors = labels.map(l => l === 'Python' ? COLORS.python : l === 'TypeScript' ? COLORS.typescript : COLORS.multi);
+
+  secondaryChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors,
+        borderWidth: 0,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '60%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { font: { size: 13 }, color: '#555', padding: 16 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.label}: ${ctx.parsed} 个框架 (${(ctx.parsed / 10 * 100).toFixed(0)}%)`
+          }
+        }
+      }
+    }
+  });
+}
+
+let currentTab = 'tab1';
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  currentTab = tab;
+  if (tab === 'tab1') {
+    buildMainChart();
+    document.getElementById('secondaryCard').style.display = 'block';
+    document.getElementById('mainTitle').textContent = 'GitHub Star 数对比';
+  } else {
+    buildMainChart();
+    document.getElementById('secondaryCard').style.display = 'none';
+    document.getElementById('mainTitle').textContent = '各框架编程语言分布';
+  }
+}
+
+renderLegend([
+  { color: COLORS.python, label: 'Python' },
+  { color: COLORS.typescript, label: 'TypeScript' },
+  { color: COLORS.multi, label: 'C# / Python' },
+]);
+buildMainChart();
+buildSecondaryChart();
+</script>
+</body>
+</html>
