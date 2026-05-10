@@ -2,6 +2,8 @@
 
 数据分析图表展示站，自动聚合 HTML 图表并部署为 GitHub Pages 在线画廊。
 
+**在线地址：https://susurrune.github.io/chart-gallery/**
+
 ## 快速开始
 
 ```bash
