@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="AI 顶会论文投稿趋势 2014→2025">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="NeurIPS 和 ICML 历年投稿量、录用率及增长趋势，以及中美贡献对比">
+<meta name="chart-tags" content="NeurIPS,ICML,论文,学术趋势,AI">
+<title>AI 顶会论文投稿趋势 2014→2025</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: linear-gradient(135deg,#1c1e26,#1a1c25); border-radius: 12px; padding: 18px 20px; border: 1px solid #2d2f3a; }
+  .stat-card .label { font-size: 11px; color: #8b949e; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-card .sub { font-size: 11px; color: #555; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 9px 20px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .tab:hover { border-color: #a371f7; color: #a371f7; }
+  .tab.active { background: #a371f7; color: #fff; border-color: #a371f7; }
+  .chart-area { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .chart-area h2 { font-size: 15px; color: #f0f6fc; }
+  .chart-area .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 14px; }
+  .chart-wrap { position: relative; height: 420px; }
+  .insight { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #a371f7; }
+  .insight h3 { font-size: 13px; color: #a371f7; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+  @media (max-width: 768px) { .stats { grid-template-columns: repeat(2,1fr); } .chart-wrap { height: 320px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📚 AI 顶会论文投稿趋势 · 2014 → 2025</h1>
+    <div class="subtitle">数据来源：<span>myhuiban.com</span> · <span>学术数据中心</span> · <span>NISTEP 报告</span></div>
+  </div>
+  <div class="stats">
+    <div class="stat-card"><div class="label">NeurIPS 2025 投稿</div><div class="value" style="color:#a371f7">21,575</div><div class="sub">同比 +38% 历史新高</div></div>
+    <div class="stat-card"><div class="label">录用率稳定</div><div class="value" style="color:#58a6ff">~25%</div><div class="sub">十年如一日</div></div>
+    <div class="stat-card"><div class="label">中国增长</div><div class="value" style="color:#f85149">64x</div><div class="sub">2015→2024 论文数</div></div>
+    <div class="stat-card"><div class="label">美国占比</div><div class="value" style="color:#3fb950">54%</div><div class="sub">2024 → 下降中</div></div>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="neurips">🧠 NeurIPS</div>
+    <div class="tab" data-tab="icml">⚙️ ICML</div>
+    <div class="tab" data-tab="both">📊 双会对比</div>
+    <div class="tab" data-tab="china">🌏 中美博弈</div>
+  </div>
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">🧠 NeurIPS 历年投稿与录用趋势</h2>
+    <div class="chart-desc" id="chartDesc">2014→2025，投稿量增长 12.8 倍，录用率稳定在 20-26%</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">NeurIPS 投稿量 10 年增长 12.8 倍（1,678→21,575），2025 年单年暴增 38% 创历史纪录。但录用率始终稳定在 20-26%——"审核漏斗"比例恒定，说明随着投稿量增长，审稿资源也在同步扩张。ICML 趋势相似但量级约为 NeurIPS 的 60%。2026 年可能出现拐点：NeurIPS 禁止 873 家中国机构投稿，ICML 引入"作者自排名"审稿机制，都可能影响投稿行为。</p>
+  </div>
+</div>
+<script>
+let mainChart = null;
+
+const NEURIPS = {
+  labels: ['2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'],
+  submissions: [1678, 1838, 2403, 3240, 4856, 6743, 9454, 9122, 10411, 12343, 15671, 21575],
+  acceptances: [414, 403, 569, 678, 1011, 1428, 1900, 2344, 2671, 3222, 4043, 5290],
+  rate: [24.7, 21.9, 23.7, 20.9, 20.8, 21.2, 20.1, 25.7, 25.7, 26.1, 25.8, 24.5],
+};
+
+const ICML = {
+  labels: ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+  submissions: [268, 300, 400, 500, 5165, 5656, 7019, 8161, 9155, 12000],
+  rate: [25, 25, 25, 25, 25, 26, 23.7, 25.3, 25.78, 22.6],
+};
+
+const configs = {
+  neurips: {
+    title: '🧠 NeurIPS 历年投稿与录用趋势',
+    desc: '蓝色柱 = 投稿量 ｜ 橙色线 = 录用率',
+    labels: NEURIPS.labels,
+    datasets: [
+      { label: '投稿量', data: NEURIPS.submissions, type: 'bar', backgroundColor: '#a371f788', borderColor: '#a371f7', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+      { label: '录用率 %', data: NEURIPS.rate, type: 'line', borderColor: '#d97757', backgroundColor: '#d9775720', fill: true, tension: 0.3, pointRadius: 5, pointHoverRadius: 7, borderWidth: 2.5, yAxisID: 'y1' },
+    ],
+    scales: { y: { beginAtZero: true, position: 'left', title: { display: true, text: '投稿量' }, ticks: { callback: v => (v/1000).toFixed(0)+'K' } }, y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, min: 15, max: 30, title: { display: true, text: '录用率 %' } } },
+    insight: '2024→2025 投稿量暴增 38%（15,671→21,575），是 10 年来最大的单年跳跃。AI 热潮 + 生成式 AI 带来的新研究方向是主因。录用率微降至 24.5%，但仍在历史区间内。2026 年值得关注：NeurIPS 禁止 873 家中国机构投稿，可能导致投稿量首次下降。',
+  },
+  icml: {
+    title: '⚙️ ICML 历年投稿与录用趋势',
+    desc: '2019 年后投稿量快速增长，2024 年突破 12,000',
+    labels: ICML.labels,
+    datasets: [
+      { label: '投稿量', data: ICML.submissions, type: 'bar', backgroundColor: '#58a6ff88', borderColor: '#58a6ff', borderWidth: 1, borderRadius: 4, yAxisID: 'y' },
+      { label: '录用率 %', data: ICML.rate, type: 'line', borderColor: '#3fb950', backgroundColor: '#3fb95020', fill: true, tension: 0.3, pointRadius: 5, pointHoverRadius: 7, borderWidth: 2.5, yAxisID: 'y1' },
+    ],
+    scales: { y: { beginAtZero: true, position: 'left', title: { display: true, text: '投稿量' }, ticks: { callback: v => (v/1000).toFixed(0)+'K' } }, y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, min: 15, max: 30, title: { display: true, text: '录用率 %' } } },
+    insight: 'ICML 投稿量从 2019 年才开始有完整数据，此前以发表数代替。2020→2024 四年翻倍（5,656→12,000）。录用率 2024 年降至 22.6%，为近年新低——竞争加剧。ICML 2026 引入的"作者自排名"审稿机制可能抑制一稿多投行为，进而影响投稿总数。',
+  },
+  both: {
+    title: '📊 双会投稿量对比',
+    desc: 'NeurIPS vs ICML 历年投稿量增长曲线',
+    type: 'line',
+    labels: ['2014','2015','2016','2017','2018','2019','2020','2021','2022','2023','2024','2025'],
+    datasets: [
+      { label: 'NeurIPS', data: [1678,1838,2403,3240,4856,6743,9454,9122,10411,12343,15671,21575], borderColor: '#a371f7', backgroundColor: '#a371f720', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 3 },
+      { label: 'ICML', data: [null,268,300,400,500,5165,5656,7019,8161,9155,12000,null], borderColor: '#58a6ff', backgroundColor: '#58a6ff20', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 3, spanGaps: false },
+    ],
+    scales: { y: { beginAtZero: true, title: { display: true, text: '投稿量' }, ticks: { callback: v => (v/1000).toFixed(0)+'K' } } },
+    insight: 'NeurIPS 一直是更大的会议（约 ICML 的 1.5-2 倍），但两者的增长趋势高度同步。2020 年 NeurIPS 出现唯一的下降（9,454→9,122），可能与疫情初期有关。ICML 在 2019 年的爆发式增长（268→5,165）其实是统计口径变化。2025 年 ICML 数据的缺失使得完整对比不可用——但趋势很明显：AI 学术产出在加速而非减速。',
+  },
+  china: {
+    title: '🌏 NeurIPS 中美贡献此消彼长',
+    desc: '中国论文数从 10 篇（2015）增长到 1,722 篇（2024）',
+    type: 'bar',
+    labels: ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+    datasets: [
+      { label: '中国论文数', data: [10, 20, 50, 120, 250, 400, 580, 820, 1200, 1722], backgroundColor: '#f8514988', borderColor: '#f85149', borderWidth: 1, borderRadius: 4 },
+      { label: '美国占比 %', data: [75, 72, 70, 68, 65, 62, 60, 58, 56, 54], type: 'line', borderColor: '#58a6ff', tension: 0.3, pointRadius: 4, borderWidth: 2.5, yAxisID: 'y1' },
+    ],
+    scales: { y: { beginAtZero: true, position: 'left', title: { display: true, text: '中国论文数' } }, y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, min: 40, max: 80, title: { display: true, text: '美国占比 %' } } },
+    insight: '中国在 NeurIPS 的论文数从 2015 年 10 篇增长到 2024 年 1,722 篇——64 倍增长。同期美国占比从 75% 降至 54%。但 2026 年 NeurIPS 因美国制裁禁止 873 家中国机构投稿，可能中断这一趋势。中美 AI 学术"脱钩"正在加速——中国机构可能转向国内会议和 ICML 等不受限制的顶会。',
+  }
+};
+
+function renderChart(tabKey) {
+  const cfg = configs[tabKey];
+  if (!cfg) return;
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+  if (mainChart) mainChart.destroy();
+  mainChart = new Chart(document.getElementById('mainChart').getContext('2d'), {
+    type: cfg.type || 'bar',
+    data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: '#8b949e', padding: 16, usePointStyle: true, font: { size: 11 } } },
+        tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 10, cornerRadius: 8 }
+      },
+      scales: cfg.scales || { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } }
+    }
+  });
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); renderChart(t.dataset.tab);
+});
+renderChart('neurips');
+</script>
+</body>
+</html>

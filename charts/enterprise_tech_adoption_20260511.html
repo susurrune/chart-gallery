@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="2026 企业技术采用率报告">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="基于 Nutanix Enterprise Cloud Index 2026 和 CNCF 云原生调查，分析容器、Kubernetes、AI 基础设施的企业落地情况">
+<meta name="chart-tags" content="技术采用率,企业,云原生,容器,Kubernetes,AI">
+<title>2026 企业技术采用率报告</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .header .subtitle span { color: #58a6ff; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: linear-gradient(135deg,#1c1e26,#1a1c25); border-radius: 12px; padding: 18px 20px; border: 1px solid #2d2f3a; }
+  .stat-card .label { font-size: 11px; color: #8b949e; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-card .sub { font-size: 11px; color: #555; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 9px 20px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .tab:hover { border-color: #58a6ff; color: #58a6ff; }
+  .tab.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+  .chart-area { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .chart-area h2 { font-size: 15px; color: #f0f6fc; }
+  .chart-area .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 14px; }
+  .chart-wrap { position: relative; height: 420px; }
+  .insight { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #58a6ff; }
+  .insight h3 { font-size: 13px; color: #58a6ff; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+  @media (max-width: 768px) { .stats { grid-template-columns: repeat(2,1fr); } .chart-wrap { height: 320px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🏭 2026 企业技术采用率报告</h1>
+    <div class="subtitle">数据来源：<span>Nutanix ECI 2026</span> · <span>CNCF 云原生调查 2025/26</span> · 1,600+ IT 高管 / 98% 组织覆盖率</div>
+  </div>
+  <div class="stats">
+    <div class="stat-card"><div class="label">容器技术采用率</div><div class="value" style="color:#58a6ff">98%</div><div class="sub">CNCF · 至少部分使用</div></div>
+    <div class="stat-card"><div class="label">K8s 生产使用率</div><div class="value" style="color:#3fb950">82%</div><div class="sub">容器用户中占比</div></div>
+    <div class="stat-card"><div class="label">AI 推理跑在 K8s</div><div class="value" style="color:#a371f7">66%</div><div class="sub">CNCF 2026</div></div>
+    <div class="stat-card"><div class="label">基础设施未就绪</div><div class="value" style="color:#f85149">82%</div><div class="sub">企业本地无法承载 AI</div></div>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="adoption">📊 核心技术采用率</div>
+    <div class="tab" data-tab="barriers">🚧 落地障碍</div>
+    <div class="tab" data-tab="ai">🤖 AI 基础设施</div>
+    <div class="tab" data-tab="trend">📈 采用趋势 2023→2026</div>
+  </div>
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">📊 企业核心技术采用率</h2>
+    <div class="chart-desc" id="chartDesc">云原生、容器、K8s、CI/CD、GitOps 等核心技术的企业生产采用率</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">云原生技术渗透率达到 98%——几乎每家企业都在使用某种形式的容器/云原生技术。K8s 生产使用率从 2023 年的 66% 飙升至 82%，正在成为"隐形基础设施"。AI 推理工作负载已有 66% 运行在 K8s 上，显示 AI 和云原生的融合加速。但 82% 的企业承认本地基础设施未准备好承载 AI 工作负载，基础设施现代化是当务之急。</p>
+  </div>
+</div>
+<script>
+let mainChart = null;
+const configs = {
+  adoption: {
+    title: '📊 企业核心技术采用率',
+    desc: '生产环境采用率 %',
+    labels: ['云原生技术','容器 (生产)','K8s (容器用户)','CI/CD 成熟','GitOps','AI 推理 on K8s','微服务架构'],
+    datasets: [{ label: '采用率 %', data: [98, 56, 82, 91, 58, 66, 72], backgroundColor: ['#58a6ff','#3fb950','#d97757','#a371f7','#ffd700','#f0db4f','#7ee787'], borderRadius: 6 }],
+    scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '采用率 %' } } },
+    insight: 'CI/CD (91%) 是成熟度最高的实践。云原生技术几乎全民化 (98%)，但生产容器使用率仅 56%——"用了但没全部用"是常态。K8s 在容器用户中达 82%，已成容器编排的事实标准。GitOps 在创新者中达 58%，但主流市场仍在观望。AI 推理在 K8s 上运行达 66%，显示 AI 正主动适配现有云原生基础设施。',
+  },
+  barriers: {
+    title: '🚧 企业采用云原生 / AI 的最大障碍',
+    desc: 'IT 高管眼中阻碍技术落地的关键因素（可多选）',
+    labels: ['组织文化变革','技术复杂度','安全合规','技能缺口','基础设施老旧','预算限制','数据孤岛'],
+    datasets: [{ label: '受访者占比 %', data: [47, 42, 38, 36, 35, 31, 28], backgroundColor: ['#f85149','#d97757','#a371f7','#58a6ff','#db6d28','#ffd700','#7ee787'], borderRadius: 6 }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: '占比 %' } } },
+    insight: '组织文化变革 (47%) 首次超越技术复杂度 (42%) 成为头号障碍——工具已经够好了，但人和流程跟不上。安全合规 (38%) 在 AI 时代变得更加突出，79% 企业遭遇"影子 AI"。技能缺口 (36%) 依然严重，但已从第一位降至第四位，说明行业培训正在见效。',
+  },
+  ai: {
+    title: '🤖 AI 基础设施准备度',
+    desc: '企业在 AI 基础设施各方面的准备情况',
+    labels: ['本地无法承载 AI','使用"影子 AI"','认为 AI 带来风险','5+ AI 应用 (3年内)','AI Agent 提升效率','数据主权优先'],
+    datasets: [{ label: '占比 %', data: [82, 79, 87, 59, 58, 80], backgroundColor: ['#f85149','#d97757','#f85149','#3fb950','#58a6ff','#a371f7'], borderRadius: 6 }],
+    scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '占比 %' } } },
+    insight: '87% 认为未授权 AI 带来安全风险——但 79% 承认企业内部存在"影子 AI"（业务部门绕过 IT 自行部署 AI）。这是一个典型的"安全 vs 速度"矛盾。82% 本地基础设施未就绪，意味着大多数企业的 AI workload 必须上云。59% 预计 3 年内会有 5 个以上 AI 应用，需求爆发式增长。',
+  },
+  trend: {
+    title: '📈 核心指标演进 2023→2026',
+    desc: '关键云原生技术采用率随时间推移的变化',
+    labels: ['2023','2024','2025','2026'],
+    datasets: [
+      { label: 'K8s 生产使用率', data: [66, 72, 78, 82], borderColor: '#58a6ff', backgroundColor: '#58a6ff20', fill: true, tension: 0.3 },
+      { label: '生产容器使用率', data: [41, 46, 52, 56], borderColor: '#3fb950', backgroundColor: '#3fb95020', fill: true, tension: 0.3 },
+      { label: 'AI on K8s', data: [20, 35, 50, 66], borderColor: '#a371f7', backgroundColor: '#a371f720', fill: true, tension: 0.3 },
+      { label: '云原生技术渗透', data: [85, 92, 95, 98], borderColor: '#d97757', backgroundColor: '#d9775720', fill: true, tension: 0.3 },
+    ],
+    scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '采用率 %' } } },
+    insight: 'AI 在 K8s 上运行的增长曲线最陡峭——从 2023 年 20% 到 2026 年 66%，三年三倍。K8s 生产使用率稳步从 66% 爬升到 82%，已接近天花板。生产容器使用率增长相对平缓 (+15pp/3年)，说明"容器化所有遗留系统"的承诺尚未完全兑现。云原生渗透率接近饱和——增量空间在于深度和广度。',
+  }
+};
+function renderChart(tabKey) {
+  const cfg = configs[tabKey];
+  if (!cfg) return;
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+  if (mainChart) mainChart.destroy();
+  const isLine = cfg.type === 'line';
+  mainChart = new Chart(document.getElementById('mainChart').getContext('2d'), {
+    type: cfg.type || 'bar',
+    data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: cfg.datasets.length > 1 ? { display: true, position: 'bottom', labels: { color: '#8b949e', padding: 16, usePointStyle: true, font: { size: 11 } } } : { display: false },
+        tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 10, cornerRadius: 8 }
+      },
+      scales: cfg.scales || { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } }
+    }
+  });
+}
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); renderChart(t.dataset.tab);
+});
+renderChart('adoption');
+</script>
+</body>
+</html>

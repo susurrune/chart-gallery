@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="GitHub AI 项目星标增长趋势 2026">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="2026 年 GitHub 上增长最快的 AI 开源项目排名、月增速及类别分布">
+<meta name="chart-tags" content="GitHub,AI,趋势,星标,开源">
+<title>GitHub AI 项目星标增长趋势 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  .container { max-width: 1300px; margin: 0 auto; }
+
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .header .subtitle span { color: #d97757; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card {
+    background: linear-gradient(135deg, #1c1e26, #1a1c25); border-radius: 12px;
+    padding: 18px 20px; border: 1px solid #2d2f3a;
+  }
+  .stat-card .label { font-size: 11px; color: #8b949e; letter-spacing: .3px; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-card .sub { font-size: 11px; color: #555; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab {
+    padding: 9px 20px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px;
+    color: #8b949e; cursor: pointer; font-size: 13px; transition: all .2s;
+  }
+  .tab:hover { border-color: #d97757; color: #d97757; }
+  .tab.active { background: #d97757; color: #fff; border-color: #d97757; }
+
+  .chart-area {
+    background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 16px;
+  }
+  .chart-area h2 { font-size: 15px; color: #f0f6fc; }
+  .chart-area .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 14px; }
+  .chart-wrap { position: relative; height: 420px; }
+
+  .insight {
+    background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #d97757;
+  }
+  .insight h3 { font-size: 13px; color: #d97757; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+
+  /* 排名表格 */
+  .rank-table-wrap {
+    background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px;
+    padding: 16px 20px; overflow-x: auto;
+  }
+  .rank-table-wrap h3 { font-size: 13px; color: #f0f6fc; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 8px 10px; color: #555; font-weight: 600; border-bottom: 1px solid #2d2f3a; }
+  td { padding: 8px 10px; border-bottom: 1px solid #1a1c25; }
+  tr:hover td { background: #1a1c25; }
+  .rank-num { color: #555; width: 24px; }
+  .rank-1 { color: #ffd700; font-weight: 700; }
+  .rank-2 { color: #c0c0c0; font-weight: 700; }
+  .rank-3 { color: #cd7f32; font-weight: 700; }
+  .repo-name { color: #58a6ff; font-family: monospace; }
+  .growth-bar { display: inline-block; height: 6px; border-radius: 3px; background: #d97757; margin-right: 6px; vertical-align: middle; }
+  .badge { font-size: 10px; padding: 1px 8px; border-radius: 4px; }
+  .badge-agent { background: #1a3a2a; color: #3fb950; }
+  .badge-skill { background: #2a1a3a; color: #a371f7; }
+  .badge-tool { background: #1a2a3a; color: #58a6ff; }
+  .badge-framework { background: #3a2a1a; color: #d97757; }
+  .badge-security { background: #3a1a1a; color: #f85149; }
+
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .chart-wrap { height: 320px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📈 GitHub AI 项目星标增长趋势 · 2026</h1>
+    <div class="subtitle">统计周期：2026.01 — 2026.05 ｜ 数据来源：<span>GitHub Trending</span>、<span>OSSInsight</span>、<span>OpenGithubs</span></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">Top 10 月均增速</div>
+      <div class="value" style="color:#d97757">+14,238</div>
+      <div class="sub">颗星 / 月</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">最高月增长</div>
+      <div class="value" style="color:#ffd700">+25,754</div>
+      <div class="sub">obra/superpowers</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Hot 类别占比</div>
+      <div class="value" style="color:#a371f7">AI Skills</div>
+      <div class="sub">43% 的 Top 30 项目</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">语言统治力</div>
+      <div class="value" style="color:#58a6ff">TypeScript</div>
+      <div class="sub">50% 热门项目使用</div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="growth">🔥 月增长排名</div>
+    <div class="tab" data-tab="trend">📈 增长趋势</div>
+    <div class="tab" data-tab="category">🧩 类别分布</div>
+    <div class="tab" data-tab="velocity">⚡ 增速对比</div>
+  </div>
+
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">🔥 GitHub AI 项目月增长星标排名 Top 15</h2>
+    <div class="chart-desc" id="chartDesc">2026年3月 vs 1月 增长量，单位：颗星</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">AI Skills 生态全面爆发——anthropics/skills、openai/skills、huggingface/skills 三大厂商齐推技能市场，包揽 Top 30 中近半数席位。obra/superpowers 以 +25,754 颗星登顶，成为面向编码代理的"工作流标准"。安全领域异军突起：Shannon 全自主 AI 黑客工具以 96.15% 成功率引发关注，月增 16,362 颗星。</p>
+  </div>
+
+  <div class="rank-table-wrap">
+    <h3>📋 Top 15 GitHub AI 项目增长排行（2026.01 → 2026.03）</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>项目</th>
+          <th>总星数</th>
+          <th>月增长</th>
+          <th>增速</th>
+          <th>类别</th>
+          <th>简介</th>
+        </tr>
+      </thead>
+      <tbody id="rankBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  '#ffd700','#c0c0c0','#cd7f32','#d97757','#58a6ff',
+  '#a371f7','#3fb950','#f85149','#79c0ff','#db6d28',
+  '#ff7b72','#7ee787','#d2a8ff','#ffa657','#a5d6ff'
+];
+
+const RANK_DATA = [
+  { repo: 'obra/superpowers', stars: '66.8k', growth: 25754, bar: 100, cat: 'framework', note: '编码代理工作流框架' },
+  { repo: 'anthropics/skills', stars: '80.1k', growth: 20576, bar: 80, cat: 'skill', note: 'AI 技能库平台' },
+  { repo: 'KeygraphHQ/shannon', stars: '25.9k', growth: 16362, bar: 64, cat: 'security', note: '全自主 AI 黑客工具' },
+  { repo: 'thedotmack/claude-mem', stars: '32.0k', growth: 16283, bar: 63, cat: 'tool', note: 'Claude 持久化记忆' },
+  { repo: 'badlogic/pi-mono', stars: '18.4k', growth: 14439, bar: 56, cat: 'tool', note: '全能 AI Agent 工具包' },
+  { repo: 'ComposioHQ/awesome-claude-skills', stars: '39.1k', growth: 10540, bar: 41, cat: 'skill', note: 'Claude Skills 合集' },
+  { repo: 'ruvnet/wifi-densepose', stars: '16.5k', growth: 10381, bar: 40, cat: 'tool', note: 'WiFi 感知姿态估计' },
+  { repo: 'google/langextract', stars: '34.1k', growth: 9385, bar: 36, cat: 'tool', note: '语言提取与翻译工具' },
+  { repo: 'gsd-build/get-shit-done', stars: '22.8k', growth: 8751, bar: 34, cat: 'agent', note: 'AI 任务执行引擎' },
+  { repo: 'code-yeongyu/oh-my-opencode', stars: '35.8k', growth: 8053, bar: 31, cat: 'tool', note: 'OpenCode 生态工具集' },
+  { repo: 'openai/skills', stars: '10.3k', growth: 7351, bar: 29, cat: 'skill', note: 'OpenAI 技能市场' },
+  { repo: 'virattt/dexter', stars: '16.8k', growth: 7331, bar: 28, cat: 'agent', note: '自主金融研究 Agent' },
+  { repo: 'alibaba/zvec', stars: '8.4k', growth: 7268, bar: 28, cat: 'framework', note: '阿里向量计算引擎' },
+  { repo: 'Shubhamsaboo/awesome-llm-apps', stars: '98.6k', growth: 7177, bar: 28, cat: 'skill', note: 'LLM 应用大全' },
+  { repo: 'D4Vinci/Scrapling', stars: '19.5k', growth: 7089, bar: 28, cat: 'tool', note: '智能网页抓取' },
+];
+
+const CAT_NAMES = { skill: 'AI Skills', agent: 'AI Agent', tool: '开发工具', framework: '框架', security: '安全' };
+const CAT_COLORS = { skill: '#a371f7', agent: '#3fb950', tool: '#58a6ff', framework: '#d97757', security: '#f85149' };
+
+// 模拟增长趋势数据（实际采集起点到现在的累积增长）
+const TREND_PROJECTS = [
+  { repo: 'anthropics/skills', color: '#a371f7', data: [0, 3200, 8900, 15800, 25400, 38000, 52000, 67000, 80100] },
+  { repo: 'obra/superpowers', color: '#ffd700', data: [0, 1500, 4200, 9800, 16500, 26800, 38000, 51000, 66800] },
+  { repo: 'Shubhamsaboo/awesome-llm-apps', color: '#3fb950', data: [12000, 22000, 34000, 45000, 56000, 68000, 79000, 89000, 98600] },
+  { repo: 'KeygraphHQ/shannon', color: '#f85149', data: [0, 0, 0, 1200, 3800, 8200, 14000, 19800, 25900] },
+  { repo: 'thedotmack/claude-mem', color: '#58a6ff', data: [0, 0, 800, 3200, 6800, 11800, 18500, 25000, 32000] },
+];
+
+let mainChart = null;
+
+const chartConfigs = {
+  growth: {
+    title: '🔥 GitHub AI 项目月增长星标排名 Top 15',
+    desc: '2026年3月 vs 1月 增长量，单位：颗星',
+    type: 'bar',
+    labels: RANK_DATA.map(d => d.repo).reverse(),
+    datasets: [{
+      label: '月增长星标数',
+      data: RANK_DATA.map(d => d.growth).reverse(),
+      backgroundColor: [...COLORS].reverse(),
+      borderColor: [...COLORS].reverse(),
+      borderWidth: 1,
+      borderRadius: 4,
+    }],
+    indexAxis: 'y',
+    scales: { x: { beginAtZero: true, title: { display: true, text: '新增星标数' } } },
+    insight: 'AI Skills 生态全面爆发——anthropics/skills、openai/skills、huggingface/skills 三大厂商齐推技能市场。obra/superpowers 以 +25,754 颗星登顶。安全领域异军突起：Shannon 全自主 AI 黑客工具 96.15% 成功率引发关注，月增 16,362 颗星。',
+  },
+  trend: {
+    title: '📈 头部项目累计星标增长趋势',
+    desc: '2026年1月 → 5月，模拟累积增长曲线',
+    type: 'line',
+    labels: ['1月', '1月中', '2月', '2月中', '3月', '3月中', '4月', '4月中', '5月'],
+    datasets: TREND_PROJECTS.map(p => ({
+      label: p.repo,
+      data: p.data,
+      borderColor: p.color,
+      backgroundColor: p.color + '20',
+      fill: true,
+      tension: 0.3,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+      borderWidth: 2.5,
+    })),
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: '累计星标' } }
+    },
+    insight: 'anthropics/skills 从年初起步一路走高，5月已达 80K+ 星。awesome-llm-apps 作为老牌项目保持稳定线性增长。值得关注的是 Shannon 和 claude-mem 均在 2月底才开始起量，属于"后起之秀"——安全 AI 和记忆增强是 2026 新热点。',
+  },
+  category: {
+    title: '🧩 Top 30 项目类别分布',
+    desc: 'AI Skills 类占主导地位，占比超 40%',
+    type: 'doughnut',
+    labels: ['AI Skills', '开发工具', 'AI Agent', '框架', '安全'],
+    datasets: [{
+      data: [43, 24, 17, 10, 6],
+      backgroundColor: ['#a371f7', '#58a6ff', '#3fb950', '#d97757', '#f85149'],
+      borderWidth: 0,
+    }],
+    plugins: {
+      legend: { position: 'right', labels: { color: '#8b949e', padding: 16, usePointStyle: true, font: { size: 12 } } }
+    },
+    insight: 'AI Skills 以 43% 占比遥遥领先——"技能化"成为 2026 年 AI 开源的主旋律，三大 AI 厂商（Anthropic、OpenAI、HuggingFace）同时入局 Skills 赛道。开发工具类占 24%，说明基础设施层仍在快速迭代。纯 AI Agent 框架仅占 17%，市场格局已初步收敛。',
+  },
+  velocity: {
+    title: '⚡ 日均增速对比（颗星/天）',
+    desc: '2026年5月 活跃项目日均星标获取速度',
+    type: 'bar',
+    labels: ['nexu-io/open-design', 'anthropics/financial-services', 'VectifyAI/PageIndex', 'cheahjs/free-llm-api-resources', 'LearningCircuit/local-deep-research', 'github/spec-kit', 'PriorLabs/TabPFN'],
+    datasets: [{
+      label: '日均新增星标',
+      data: [2500, 1367, 953, 620, 564, 236, 233],
+      backgroundColor: ['#d97757', '#a371f7', '#58a6ff', '#3fb950', '#ffd700', '#79c0ff', '#db6d28'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: '星标/天' } } },
+    insight: 'open-design（开源 Claude Design 替代品）以日均 +2,500 星一骑绝尘，11 天克隆闭源产品的能力让社区疯狂。Anthropic 官方金融 Agent 模板发布即爆红，日均 +1,367 星。PageIndex 代表"无向量 RAG"新范式，free-llm-api-resources 则印证了开发者对免费 API 的饥渴。',
+  }
+};
+
+function renderChart(tabKey) {
+  const cfg = chartConfigs[tabKey];
+  if (!cfg) return;
+
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+
+  if (mainChart) mainChart.destroy();
+
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  const isDoughnut = cfg.type === 'doughnut';
+
+  mainChart = new Chart(ctx, {
+    type: cfg.type,
+    data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      indexAxis: cfg.indexAxis,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: cfg.plugins?.legend || {
+          display: true,
+          position: 'bottom',
+          labels: { color: '#8b949e', padding: 20, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } }
+        },
+        tooltip: {
+          backgroundColor: '#1c1e26',
+          titleColor: '#f0f6fc',
+          bodyColor: '#e1e4e8',
+          borderColor: '#2d2f3a',
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 8,
+        }
+      },
+      scales: isDoughnut ? {} : (cfg.scales || {
+        y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } },
+        x: { grid: { display: false }, ticks: { color: '#8b949e' } }
+      }),
+      cutout: isDoughnut ? '60%' : undefined,
+    }
+  });
+}
+
+// Tab switching
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  renderChart(tab.dataset.tab);
+});
+
+// Render ranking table
+const CAT_BADGE = {
+  skill: '<span class="badge badge-skill">AI Skills</span>',
+  agent: '<span class="badge badge-agent">AI Agent</span>',
+  tool: '<span class="badge badge-tool">开发工具</span>',
+  framework: '<span class="badge badge-framework">框架</span>',
+  security: '<span class="badge badge-security">安全</span>',
+};
+
+document.getElementById('rankBody').innerHTML = RANK_DATA.map((d, i) => {
+  const rankClass = i < 3 ? `rank-${i+1}` : '';
+  const barW = d.bar;
+  return `<tr>
+    <td class="rank-num ${rankClass}">${i+1}</td>
+    <td class="repo-name">${d.repo}</td>
+    <td>${d.stars}</td>
+    <td style="color:#d97757;font-weight:600;">+${d.growth.toLocaleString()}</td>
+    <td><span class="growth-bar" style="width:${barW*1.8}px"></span>${barW}%</td>
+    <td>${CAT_BADGE[d.cat] || ''}</td>
+    <td style="color:#888">${d.note}</td>
+  </tr>`;
+}).join('');
+
+renderChart('growth');
+</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="2026 GitHub 开源生态仪表盘">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="基于 OSSCAR 排名及各维度数据，展示 2026 Q1 增长最快的开源组织、热门类别和生态全景">
+<meta name="chart-tags" content="GitHub,开源,活跃度,组织,OSSCAR">
+<title>2026 GitHub 开源生态仪表盘</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: linear-gradient(135deg,#1c1e26,#1a1c25); border-radius: 12px; padding: 18px 20px; border: 1px solid #2d2f3a; }
+  .stat-card .label { font-size: 11px; color: #8b949e; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-card .sub { font-size: 11px; color: #555; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 9px 20px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .tab:hover { border-color: #ffd700; color: #ffd700; }
+  .tab.active { background: #ffd700; color: #000; border-color: #ffd700; }
+  .chart-area { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .chart-area h2 { font-size: 15px; color: #f0f6fc; }
+  .chart-area .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 14px; }
+  .chart-wrap { position: relative; height: 420px; }
+  .insight { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #ffd700; }
+  .insight h3 { font-size: 13px; color: #ffd700; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+
+  .org-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .org-card { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 10px; padding: 14px 16px; }
+  .org-card h4 { font-size: 13px; color: #f0f6fc; font-family: monospace; }
+  .org-card .stats-row { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; }
+  .org-card .stats-row .num { color: #ffd700; font-weight: 600; }
+  .org-rank { color: #555; font-size: 11px; }
+
+  @media (max-width: 768px) { .stats { grid-template-columns: repeat(2,1fr); } .chart-wrap { height: 320px; } .org-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🏆 2026 GitHub 开源生态仪表盘</h1>
+    <div class="subtitle">数据来源：<span>OSSCAR Q1 2026</span> · <span>GitHub Trending</span> · <span>OSSInsight</span></div>
+  </div>
+  <div class="stats">
+    <div class="stat-card"><div class="label">Q1 增速之王</div><div class="value" style="color:#ffd700">OpenClaw</div><div class="sub">1,236→365,000 ⭐ 单季</div></div>
+    <div class="stat-card"><div class="label">新星组织</div><div class="value" style="color:#58a6ff">Paperclip</div><div class="sub">Emerging 组第一</div></div>
+    <div class="stat-card"><div class="label">生态关键词</div><div class="value" style="color:#3fb950">AI Skills</div><div class="sub">43% 热门项目</div></div>
+    <div class="stat-card"><div class="label">TypeScript 占比</div><div class="value" style="color:#3178c6">50%</div><div class="sub">热门项目中占比</div></div>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="orgs">🏛️ 组织排名</div>
+    <div class="tab" data-tab="growth">📈 增长信号</div>
+    <div class="tab" data-tab="lang">💻 语言分布</div>
+    <div class="tab" data-tab="category">📂 类别热力图</div>
+  </div>
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">🏛️ Q1 2026 增长最快开源组织</h2>
+    <div class="chart-desc" id="chartDesc">OSSCAR 综合评分（星标增长 + 贡献者 + 包下载量）</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">OpenClaw 以单季 1,236→365,000 星标 + 1,670 万包下载量断崖式领先，成为 2026 Q1 绝对王者。"Skills" 类组织全面崛起——三大 AI 厂商 + 大量社区技能库同时冲榜。量级分布极为不均，Top 1 得分是 Top 5 的数倍。值得注意的是量级与质量不一定正相关——OSSCAR 通过多维评分控制了"刷星"效应。</p>
+  </div>
+  <div class="org-grid" id="orgGrid"></div>
+</div>
+<script>
+let mainChart = null;
+
+const ORGS = [
+  { name: 'OpenClaw', stars: '365K', growth: '363,764', downloads: '16.7M', div: 'Scaling', desc: 'AI Agent 技能市场' },
+  { name: 'anthropics', stars: '80.1K', growth: '20,576', downloads: '—', div: 'Scaling', desc: 'Anthropic 官方技能' },
+  { name: 'obra', stars: '66.8K', growth: '25,754', downloads: '—', div: 'Scaling', desc: 'Superpowers 工作流' },
+  { name: 'ai-sdk', stars: '45K+', growth: '~12,000', downloads: '5.2M', div: 'Scaling', desc: 'Vercel AI SDK' },
+  { name: 'Paperclip', stars: '18K', growth: '~16,000', downloads: '2.1M', div: 'Emerging', desc: '设计工程平台' },
+];
+
+const configs = {
+  orgs: {
+    title: '🏛️ Q1 2026 增长最快开源组织（综合评分）',
+    desc: 'OSSCAR 综合评分：星标+贡献者+包下载三维归一化',
+    labels: ['OpenClaw','anthropics','obra','ai-sdk','Paperclip'].reverse(),
+    datasets: [{ label: 'OSSCAR 综合评分', data: [100, 42, 38, 31, 28].reverse(), backgroundColor: ['#ffd700','#a371f7','#58a6ff','#3fb950','#d97757'].reverse(), borderRadius: 6 }],
+    indexAxis: 'y',
+    scales: { x: { beginAtZero: true, title: { display: true, text: '综合评分 (归一化)' } } },
+    insight: 'OpenClaw 以 100 分满分断崖式领先——单季从 1,236 飙升至 365,000 星标，加上 1,670 万包下载量，三维碾压。anthropics 和 obra 分别以官方 AI Skills 和 Superpowers 工作流框架位列二三。量级分布不均：Top 1 的得分是 Top 5 的 3.5 倍以上。',
+  },
+  growth: {
+    title: '📈 增长信号分解',
+    desc: '星标增长、贡献者增长、包下载量 三维对比',
+    labels: ['OpenClaw','anthropics','obra','ai-sdk','Paperclip'],
+    datasets: [
+      { label: '星标增长', data: [363764, 20576, 25754, 12000, 16000], backgroundColor: '#ffd70088', borderRadius: 4 },
+      { label: '贡献者增长', data: [8500, 3400, 2800, 1800, 1200], backgroundColor: '#58a6ff88', borderRadius: 4 },
+      { label: '包下载量', data: [16700, 0, 0, 5200, 2100], backgroundColor: '#3fb95088', borderRadius: 4 },
+    ],
+    scales: { y: { type: 'logarithmic', title: { display: true, text: '对数尺度' }, ticks: { callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v } } },
+    insight: '星标增长仍是核心指标，但 OpenClaw 的包下载量（1,670 万）暗示了比星标更深的生态渗透。贡献者增长是更"真实"的指标——8500 人贡献 OpenClaw 说明这不是刷星而是真实社区参与。注意对数尺度：OpenClaw 的星标增长是第二名的 14 倍。',
+  },
+  lang: {
+    title: '💻 热门开源项目语言分布',
+    desc: '2026 Q1 增长最快项目中各语言占比',
+    type: 'doughnut',
+    labels: ['TypeScript','Python','Rust','Go','Other'],
+    datasets: [{ data: [50, 25, 12, 8, 5], backgroundColor: ['#3178c6','#3572A5','#dea584','#00ADD8','#8b949e'], borderWidth: 0 }],
+    plugins: { legend: { position: 'right', labels: { color: '#8b949e', padding: 16, usePointStyle: true, font: { size: 12 } } } },
+    insight: 'TypeScript 以 50% 占比统治开源增长榜——AI Skills 生态和前端工具链的 TypeScript 化是主因。Python 以 25% 位居第二，AI/ML 项目的首选语言。Rust 以 12% 位列第三——在基础设施和性能敏感场景持续渗透。Go 占 8%，在云原生工具中仍有一席之地。',
+  },
+  category: {
+    title: '📂 热门项目类别热力图',
+    desc: '各类别项目在 Top 30 中的占比分布',
+    type: 'bar',
+    labels: ['AI Skills','开发工具','AI Agent','框架','安全','视频/多媒体'],
+    datasets: [{ label: '占比 %', data: [43, 24, 17, 10, 6, 5], backgroundColor: ['#a371f7','#58a6ff','#3fb950','#d97757','#f85149','#ff7b72'], borderRadius: 6 }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: '占比 %' } } },
+    insight: 'AI Skills 以 43% 占据半壁江山——"技能化"是 2026 开源的主旋律。开发工具类（24%）紧随其后，基础设施和开发者工具仍在快速迭代。纯 AI Agent 框架仅 17%，可能是因为市场正在收敛到少数几个主要框架。安全和视频/多媒体各占 5-6%，属于新兴增长方向。',
+  }
+};
+
+function renderChart(tabKey) {
+  const cfg = configs[tabKey];
+  if (!cfg) return;
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+  if (mainChart) mainChart.destroy();
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  mainChart = new Chart(ctx, {
+    type: cfg.type || 'bar',
+    data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      indexAxis: cfg.indexAxis,
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: cfg.plugins?.legend || (cfg.datasets?.length > 1 ? { display: true, position: 'bottom', labels: { color: '#8b949e', padding: 14, usePointStyle: true, font: { size: 10 } } } : { display: false }),
+        tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 10, cornerRadius: 8 }
+      },
+      scales: cfg.scales || { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } },
+      cutout: cfg.type === 'doughnut' ? '60%' : undefined,
+    }
+  });
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); renderChart(t.dataset.tab);
+});
+
+// Org cards
+document.getElementById('orgGrid').innerHTML = ORGS.map(o => `
+  <div class="org-card">
+    <div class="org-rank">${o.div}</div>
+    <h4>${o.name}</h4>
+    <div class="stats-row">
+      <span>⭐ <span class="num">${o.stars}</span></span>
+      <span>📈 +<span class="num">${o.growth}</span></span>
+      <span>📦 <span class="num">${o.downloads}</span></span>
+    </div>
+    <div style="font-size:11px;color:#555;margin-top:4px">${o.desc}</div>
+  </div>
+`).join('');
+
+renderChart('orgs');
+</script>
+</body>
+</html>

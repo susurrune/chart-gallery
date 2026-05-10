@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 前端框架多维度对比</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f1117;
+    color: #e1e4e8;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .container { max-width: 1300px; margin: 0 auto; }
+
+  /* header */
+  .header { margin-bottom: 28px; }
+  .header h1 { font-size: 28px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 14px; margin-top: 6px; }
+
+  /* stats row */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card {
+    background: #1c1e26; border-radius: 12px; padding: 20px; border: 1px solid #2d2f3a;
+    transition: all .2s;
+  }
+  .stat-card:hover { border-color: #58a6ff; transform: translateY(-2px); }
+  .stat-card .label { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: .5px; }
+  .stat-card .value { font-size: 26px; font-weight: 700; color: #f0f6fc; margin: 6px 0 4px; }
+  .stat-card .change { font-size: 12px; }
+  .stat-card .change.up { color: #3fb950; }
+  .stat-card .change.down { color: #f85149; }
+
+  /* tabs */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab {
+    padding: 10px 22px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px;
+    color: #8b949e; cursor: pointer; font-size: 14px; transition: all .2s;
+  }
+  .tab:hover { border-color: #58a6ff; color: #58a6ff; }
+  .tab.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+
+  /* chart area */
+  .chart-area {
+    background: #1c1e26; border-radius: 12px; padding: 24px; border: 1px solid #2d2f3a;
+    margin-bottom: 20px;
+  }
+  .chart-area h2 { font-size: 16px; color: #f0f6fc; margin-bottom: 4px; }
+  .chart-area .chart-desc { font-size: 13px; color: #8b949e; margin-bottom: 16px; }
+  .chart-wrap { position: relative; height: 420px; }
+
+  /* legend badge */
+  .legend-grid { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid #2d2f3a; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .legend-item .dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  /* insight box */
+  .insight {
+    background: #1c1e26; border-radius: 12px; padding: 20px 24px; border: 1px solid #2d2f3a;
+    margin-bottom: 20px; border-left: 3px solid #58a6ff;
+  }
+  .insight h3 { font-size: 14px; color: #58a6ff; margin-bottom: 8px; }
+  .insight p { font-size: 13px; color: #8b949e; line-height: 1.7; }
+
+  /* data table */
+  .data-table-wrap {
+    background: #1c1e26; border-radius: 12px; padding: 20px 24px; border: 1px solid #2d2f3a;
+    overflow-x: auto;
+  }
+  .data-table-wrap h3 { font-size: 14px; color: #f0f6fc; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; color: #8b949e; font-weight: 600; border-bottom: 1px solid #2d2f3a; }
+  td { padding: 10px 12px; border-bottom: 1px solid #1c1e26; }
+  tr:hover td { background: #1a1c25; }
+  .best { color: #3fb950; font-weight: 600; }
+  .worst { color: #f85149; }
+
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .chart-wrap { height: 300px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>⚡ 2026 前端框架多维度对比</h1>
+    <div class="subtitle">React 19 · Vue 3.6 · Svelte 5 · SolidJS 1.9  |  数据来源：npm trends、GitHub、js-framework-benchmark、2026 公开基准测试</div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="label">包体积（基础 gzip）</div>
+      <div class="value" style="color:#3fb950">2 KB</div>
+      <div class="change up">Svelte 5 最优</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">npm 周下载量</div>
+      <div class="value">68.4M</div>
+      <div class="change up">React 领先</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">GitHub Stars</div>
+      <div class="value">243K</div>
+      <div class="change up">React 领先</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">内存占用（基准）</div>
+      <div class="value" style="color:#3fb950">~28 MB</div>
+      <div class="change up">Vue 最低</div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="bundle">📦 包体积</div>
+    <div class="tab" data-tab="popularity">📈 热度对比</div>
+    <div class="tab" data-tab="performance">⚡ 渲染性能</div>
+    <div class="tab" data-tab="memory">💾 内存占用</div>
+    <div class="tab" data-tab="radar">🕸️ 综合雷达</div>
+  </div>
+
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">📦 基础包体积对比（gzip）</h2>
+    <div class="chart-desc" id="chartDesc">最简单应用打包后体积，单位 KB，越小越好</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">Svelte 5 编译后几乎无运行时开销，基础包仅 2KB；Vue 3.6 Vapor Mode 彻底抛弃虚拟 DOM 后降至 10KB 以下，React 19 虽有编译器优化但运行时包袱最重（~45KB）。如果以"首屏体积"为 KPI，Svelte 和 Vue Vapor 碾压其他框架。</p>
+  </div>
+
+  <div class="data-table-wrap">
+    <h3>📋 完整数据表</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>框架</th>
+          <th>基础包体积 (gzip)</th>
+          <th>典型应用体积</th>
+          <th>npm 周下载</th>
+          <th>GitHub Stars</th>
+          <th>Contributors</th>
+          <th>内存占用 (空闲)</th>
+          <th>诞生年份</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>React 19</strong></td>
+          <td class="worst">~45 KB</td>
+          <td>200–400 KB</td>
+          <td><strong>68.4M</strong></td>
+          <td><strong>243K</strong></td>
+          <td>1,726</td>
+          <td>~30 MB</td>
+          <td>2013</td>
+        </tr>
+        <tr>
+          <td><strong>Vue 3.6</strong></td>
+          <td>~10 KB (Vapor)</td>
+          <td>~41 KB (标准)</td>
+          <td>8.4M</td>
+          <td>53K</td>
+          <td>574</td>
+          <td class="best">~28 MB</td>
+          <td>2014</td>
+        </tr>
+        <tr>
+          <td><strong>Svelte 5</strong></td>
+          <td class="best">~2 KB</td>
+          <td class="best">~6.7 KB</td>
+          <td>7.4M</td>
+          <td>86K</td>
+          <td>834</td>
+          <td>~24 MB</td>
+          <td>2016</td>
+        </tr>
+        <tr>
+          <td><strong>SolidJS 1.9</strong></td>
+          <td>~10 KB</td>
+          <td>~16 MB (repo)</td>
+          <td>~8.2M</td>
+          <td>35K</td>
+          <td>~200</td>
+          <td>~22 MB</td>
+          <td>2018</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const COLORS = {
+  react:   { bg: 'rgba(88,196,220,0.85)', border: '#58c4dc', fill: 'rgba(88,196,220,0.2)' },
+  vue:     { bg: 'rgba(66,184,131,0.85)', border: '#42b883', fill: 'rgba(66,184,131,0.2)' },
+  svelte:  { bg: 'rgba(255,107,53,0.85)', border: '#ff6b35', fill: 'rgba(255,107,53,0.2)' },
+  solid:   { bg: 'rgba(129,118,228,0.85)', border: '#8176e4', fill: 'rgba(129,118,228,0.2)' },
+};
+
+const FRAMEWORKS = ['React 19', 'Vue 3.6', 'Svelte 5', 'SolidJS 1.9'];
+
+let mainChart = null;
+
+const chartConfigs = {
+  bundle: {
+    title: '📦 基础包体积对比（gzip）',
+    desc: '最简单应用打包后体积，单位 KB，越小越好',
+    type: 'bar',
+    labels: FRAMEWORKS,
+    datasets: [{
+      label: '基础体积 (KB)',
+      data: [45, 10, 2, 10],
+      backgroundColor: [COLORS.react.bg, COLORS.vue.bg, COLORS.svelte.bg, COLORS.solid.bg],
+      borderColor: [COLORS.react.border, COLORS.vue.border, COLORS.svelte.border, COLORS.solid.border],
+      borderWidth: 2,
+      borderRadius: 6,
+    }],
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'KB (gzip)' } }
+    },
+    insight: 'Svelte 5 编译后几乎无运行时开销，基础包仅 2KB；Vue 3.6 Vapor Mode 彻底抛弃虚拟 DOM 后降至 10KB 以下。React 19 虽有编译器优化但运行时包袱最重（~45KB）。如果以"首屏体积"为 KPI，Svelte 和 Vue Vapor 碾压其他框架。',
+  },
+  popularity: {
+    title: '📈 社区热度双轴对比',
+    desc: 'npm 周下载量（百万） vs GitHub Stars（万），2026 年 5 月',
+    type: 'bar',
+    labels: FRAMEWORKS,
+    datasets: [
+      {
+        label: 'npm 周下载 (百万)',
+        data: [68.4, 8.4, 7.4, 8.2],
+        backgroundColor: [COLORS.react.bg, COLORS.vue.bg, COLORS.svelte.bg, COLORS.solid.bg],
+        borderColor: [COLORS.react.border, COLORS.vue.border, COLORS.svelte.border, COLORS.solid.border],
+        borderWidth: 2,
+        borderRadius: 6,
+        yAxisID: 'y',
+      },
+      {
+        label: 'GitHub Stars (万)',
+        data: [24.3, 5.3, 8.6, 3.5],
+        type: 'line',
+        borderColor: '#f0f6fc',
+        backgroundColor: '#f0f6fc',
+        pointBackgroundColor: '#f0f6fc',
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        borderWidth: 3,
+        tension: 0.2,
+        yAxisID: 'y1',
+      }
+    ],
+    scales: {
+      y: { beginAtZero: true, position: 'left', title: { display: true, text: 'npm 周下载 (M)' } },
+      y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'GitHub Stars (万)' } },
+    },
+    insight: 'React 以 68.4M 周下载和 243K Stars 遥遥领先，生态统治力无可撼动。但值得注意：Svelte 的 Stars（86K）远超 Vue（53K），说明开发者兴趣高涨，下载量却略低于 Vue——"叫好不叫座"的现象仍在持续。SolidJS 下载量意外高于预期（8.2M），部分来自 SolidStart 和相关工具链。',
+  },
+  performance: {
+    title: '⚡ 渲染性能基准测试',
+    desc: '各项得分（越高越好），基于 js-framework-benchmark 及 2026 公开数据',
+    type: 'radar',
+    labels: ['初始渲染', '列表更新 (10K行)', '高频率更新', '大列表 diff', 'SSR 速度'],
+    datasets: [
+      { label: 'React 19',    data: [70, 80, 75, 70, 85], ...COLORS.react },
+      { label: 'Vue 3.6',     data: [88, 82, 85, 80, 82], ...COLORS.vue },
+      { label: 'Svelte 5',    data: [95, 90, 92, 88, 90], ...COLORS.svelte },
+      { label: 'SolidJS 1.9', data: [97, 95, 96, 90, 85], ...COLORS.solid },
+    ].map(d => ({
+      ...d,
+      backgroundColor: d.fill,
+      borderColor: d.border,
+      pointBackgroundColor: d.border,
+      borderWidth: 2,
+    })),
+    radarConfig: true,
+    scales: {
+      r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } }
+    },
+    insight: 'SolidJS 在几乎所有渲染基准上领先，颗粒度响应式优势明显。Svelte 5 紧随其后，编译消除虚拟 DOM 的收益显著。Vue 3.6 Vapor Mode 大幅缩小了差距，在初始渲染上从"够用"跃升到"优秀"。React 19 的编译器优化提升了约 26%，但受限于运行时架构，在纯渲染速度上仍落后。',
+  },
+  memory: {
+    title: '💾 内存占用对比（空闲状态）',
+    desc: '单位 MB，越低越好。基于同样复杂度的应用基准测试',
+    type: 'bar',
+    labels: FRAMEWORKS,
+    datasets: [{
+      label: '内存占用 (MB)',
+      data: [30, 28, 24, 22],
+      backgroundColor: [COLORS.react.bg, COLORS.vue.bg, COLORS.svelte.bg, COLORS.solid.bg],
+      borderColor: [COLORS.react.border, COLORS.vue.border, COLORS.svelte.border, COLORS.solid.border],
+      borderWidth: 2,
+      borderRadius: 6,
+    }],
+    scales: {
+      y: { beginAtZero: true, title: { display: true, text: 'MB' } }
+    },
+    insight: 'Vue 在大列表 diffing 下以 ~28MB 保持最低稳态内存，Angular 以确定性内存管理次之（~34MB）。React 在并发过渡期间可能出现峰值。值得注意的是，Svelte 和 Solid 由于无运行时，实际 DOM 操作的内存开销接近原生 JS——在极端场景（数千组件）下优势更明显。',
+  },
+  radar: {
+    title: '🕸️ 综合能力雷达图',
+    desc: '五个维度的综合评分（满分 100），并非绝对数值而是相对评分',
+    type: 'radar',
+    labels: ['包体积', '社区活跃度', '渲染性能', '内存效率', '生态系统'],
+    datasets: [
+      { label: 'React 19',    data: [30, 100, 70, 65, 100], ...COLORS.react },
+      { label: 'Vue 3.6',     data: [72, 40, 82, 78, 75], ...COLORS.vue },
+      { label: 'Svelte 5',    data: [98, 45, 92, 85, 50], ...COLORS.svelte },
+      { label: 'SolidJS 1.9', data: [78, 25, 96, 90, 30], ...COLORS.solid },
+    ].map(d => ({
+      ...d,
+      backgroundColor: d.fill,
+      borderColor: d.border,
+      pointBackgroundColor: d.border,
+      borderWidth: 2,
+    })),
+    radarConfig: true,
+    scales: {
+      r: { beginAtZero: true, max: 100, ticks: { stepSize: 20 } }
+    },
+    insight: 'React 凭借无人能及的生态和社区规模在"社区"和"生态"维度满分，但包体积拖后腿。Svelte 在技术维度全面优秀，生态是短板。Vue 是最均衡的选择——包体积优化后不掉队，生态仅次于 React。SolidJS 是纯粹的性能之选，但生态最小。没有完美框架，只有最适合项目的框架。',
+  }
+};
+
+function renderChart(tabKey) {
+  const cfg = chartConfigs[tabKey];
+  if (!cfg) return;
+
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+
+  if (mainChart) mainChart.destroy();
+
+  const ctx = document.getElementById('mainChart').getContext('2d');
+
+  const chartCfg = {
+    type: cfg.type,
+    data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'bottom',
+          labels: { color: '#8b949e', padding: 20, usePointStyle: true, pointStyle: 'circle' }
+        },
+        tooltip: {
+          backgroundColor: '#1c1e26',
+          titleColor: '#f0f6fc',
+          bodyColor: '#e1e4e8',
+          borderColor: '#2d2f3a',
+          borderWidth: 1,
+          padding: 12,
+          cornerRadius: 8,
+        }
+      },
+      scales: cfg.scales || {
+        y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } },
+        x: { grid: { display: false }, ticks: { color: '#8b949e' } }
+      },
+    }
+  };
+
+  if (cfg.radarConfig) {
+    chartCfg.options.scales = cfg.scales || {
+      r: {
+        beginAtZero: true,
+        grid: { color: '#2d2f3a' },
+        angleLines: { color: '#2d2f3a' },
+        pointLabels: { color: '#e1e4e8', font: { size: 12 } },
+        ticks: { color: '#8b949e', backdropColor: 'transparent' }
+      }
+    };
+  }
+
+  mainChart = new Chart(ctx, chartCfg);
+}
+
+// tab switching
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  renderChart(tab.dataset.tab);
+});
+
+renderChart('bundle');
+</script>
+</body>
+</html>

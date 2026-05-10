@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="2026 AI 编程助手横评">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="Claude Code vs Cursor vs Windsurf vs GitHub Copilot 全方位对比：功能矩阵、基准测试、定价、适用场景">
+<meta name="chart-tags" content="AI编程,Copilot,Cursor,Windsurf,Claude Code,对比">
+<title>2026 AI 编程助手横评</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 9px 20px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .tab:hover { border-color: #58a6ff; color: #58a6ff; }
+  .tab.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+  .chart-area { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .chart-area h2 { font-size: 15px; color: #f0f6fc; }
+  .chart-area .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 14px; }
+  .chart-wrap { position: relative; height: 420px; }
+  .insight { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #58a6ff; }
+  .insight h3 { font-size: 13px; color: #58a6ff; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+
+  /* feature matrix */
+  .matrix { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; overflow-x: auto; margin-bottom: 16px; }
+  .matrix h3 { font-size: 13px; color: #f0f6fc; margin-bottom: 10px; }
+  .mx-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .mx-table th { text-align: center; padding: 10px 8px; border-bottom: 2px solid #2d2f3a; font-weight: 600; }
+  .mx-table td { text-align: center; padding: 8px; border-bottom: 1px solid #1a1c25; }
+  .mx-table tr:hover td { background: #1a1c25; }
+  .mx-table .feat { text-align: left; color: #8b949e; }
+  .yes { color: #3fb950; }
+  .no { color: #444; }
+  .partial { color: #d97757; }
+  .col-claude h4 { color: #d97757; }
+  .col-cursor h4 { color: #58a6ff; }
+  .col-windsurf h4 { color: #3fb950; }
+  .col-copilot h4 { color: #f0db4f; }
+  .src { font-size: 10px; color: #444; margin-top: 8px; }
+
+  @media (max-width: 768px) { .chart-wrap { height: 320px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🤖 2026 AI 编程助手全方位横评</h1>
+    <div class="subtitle">Claude Code · Cursor · Windsurf · GitHub Copilot ｜ 数据截至 2026 年 5 月</div>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="radar">🕸️ 综合能力</div>
+    <div class="tab" data-tab="benchmark">📊 基准测试</div>
+    <div class="tab" data-tab="pricing">💰 定价对比</div>
+    <div class="tab" data-tab="weakness">⚠️ 各自短板</div>
+  </div>
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">🕸️ 综合能力雷达图</h2>
+    <div class="chart-desc" id="chartDesc">六大维度评分（满分 100），基于产品评测和社区反馈</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">没有全能冠军——每个工具各有致命短板。Claude Code 推理能力最强但无 GUI；Cursor 体验最流畅但计费不透明；Windsurf 性价比最高但代码质量存疑；Copilot 生态最广但 Agent 能力落后。越来越多开发者采用"混合策略"：Cursor 写日常代码 + Claude Code 攻坚难题。</p>
+  </div>
+
+  <div class="matrix">
+    <h3>📋 功能矩阵对比</h3>
+    <table class="mx-table">
+      <thead><tr>
+        <th style="width:160px;text-align:left">功能</th>
+        <th class="col-claude"><h4>Claude Code</h4></th>
+        <th class="col-cursor"><h4>Cursor</h4></th>
+        <th class="col-windsurf"><h4>Windsurf</h4></th>
+        <th class="col-copilot"><h4>Copilot</h4></th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="feat">SWE-bench 得分</td><td class="yes">80.9% 🥇</td><td>72.8%</td><td class="partial">N/A (自有模型)</td><td class="no">未公开</td></tr>
+        <tr><td class="feat">Agent 模式</td><td class="yes">✅ 原生</td><td class="yes">✅ Composer</td><td class="yes">✅ Cascade</td><td class="partial">⚠️ 有限</td></tr>
+        <tr><td class="feat">上下文窗口</td><td class="yes">200K (1M)</td><td>200K</td><td>128K</td><td class="no">~128K</td></tr>
+        <tr><td class="feat">多模型路由</td><td class="no">仅 Claude</td><td class="yes">✅ Claude/GPT/Gemini</td><td class="yes">✅ 自有+第三方</td><td class="partial">⚠️ 有限</td></tr>
+        <tr><td class="feat">内联补全</td><td class="no">❌ 无</td><td class="yes">✅</td><td class="yes">✅ 无限</td><td class="yes">✅</td></tr>
+        <tr><td class="feat">IDE 集成</td><td class="no">终端专用</td><td class="yes">✅ VS Code Fork</td><td class="yes">✅ VS Code Fork</td><td class="yes">✅ 全 IDE</td></tr>
+        <tr><td class="feat">GitHub 集成</td><td class="partial">⚠️ 有限</td><td class="partial">⚠️ 中等</td><td class="partial">⚠️ 有限</td><td class="yes">✅ 最深</td></tr>
+        <tr><td class="feat">多文件重构</td><td class="yes">✅ 最强</td><td class="yes">✅ 强</td><td class="partial">⚠️ 中等</td><td class="no">弱</td></tr>
+        <tr><td class="feat">Agent Teams</td><td class="yes">✅</td><td class="no">❌</td><td class="no">❌</td><td class="no">❌</td></tr>
+        <tr><td class="feat">免费额度</td><td class="no">❌ 无</td><td class="partial">⚠️ 有限</td><td class="partial">⚠️ 25次/月</td><td class="yes">✅ 50次/月</td></tr>
+        <tr><td class="feat">终端操作</td><td class="yes">✅ 原生</td><td class="partial">⚠️ 有限</td><td class="no">❌</td><td class="no">❌</td></tr>
+        <tr><td class="feat">企业合规</td><td class="partial">⚠️ 基本</td><td class="partial">⚠️ 基本</td><td class="no">❌ 不确定</td><td class="yes">✅ 全栈</td></tr>
+      </tbody>
+    </table>
+    <div class="src">来源：morphllm.com · datanorth.ai · tembo.io · fungies.io · github.com/PackMindHub</div>
+  </div>
+</div>
+<script>
+let mainChart = null;
+const C = { claude: '#d97757', cursor: '#58a6ff', windsurf: '#3fb950', copilot: '#f0db4f' };
+
+const configs = {
+  radar: {
+    title: '🕸️ 综合能力雷达图',
+    desc: '六大维度评分（满分 100）',
+    type: 'radar',
+    labels: ['推理能力','代码质量','开发体验','生态集成','性价比','多文件重构'],
+    datasets: [
+      { label: 'Claude Code', data: [95, 92, 55, 50, 45, 95], borderColor: C.claude, backgroundColor: C.claude + '20', pointBackgroundColor: C.claude },
+      { label: 'Cursor', data: [75, 78, 92, 70, 55, 80], borderColor: C.cursor, backgroundColor: C.cursor + '20', pointBackgroundColor: C.cursor },
+      { label: 'Windsurf', data: [60, 55, 80, 55, 80, 60], borderColor: C.windsurf, backgroundColor: C.windsurf + '20', pointBackgroundColor: C.windsurf },
+      { label: 'Copilot', data: [50, 60, 75, 95, 85, 40], borderColor: C.copilot, backgroundColor: C.copilot + '20', pointBackgroundColor: C.copilot },
+    ].map(d => ({ ...d, borderWidth: 2.5 })),
+    scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20, backdropColor: 'transparent', color: '#555' }, grid: { color: '#2d2f3a' }, angleLines: { color: '#2d2f3a' }, pointLabels: { color: '#e1e4e8', font: { size: 11 } } } },
+    insight: 'Claude Code 推理和重构一骑绝尘，但开发体验被终端 UI 拖累。Cursor 最均衡，各方面都在 70+。Windsurf 性价比突出但代码质量是硬伤。Copilot 靠 GitHub 生态拿了集成满分，但 Agent 能力是明显短板。没有完美工具——Coder 的最佳策略是组合使用。',
+  },
+  benchmark: {
+    title: '📊 SWE-bench Verified 得分对比',
+    desc: '在真实 GitHub Issue 上的修复成功率（越高越好），2026 年 4 月数据',
+    type: 'bar',
+    labels: ['Claude Code','Antigravity','Codex CLI','Cursor','Devin 2.0','Cline'],
+    datasets: [{
+      label: 'SWE-bench %',
+      data: [80.9, 76.2, 75.2, 72.8, 67, 48],
+      backgroundColor: [C.claude, '#8ab4f8', '#74aa9c', C.cursor, '#a371f7', '#f85149'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, max: 100, title: { display: true, text: '解决率 %' } } },
+    insight: 'Claude Code 以 80.9% 领跑——但注意"同模型不同 Agent 差距可达 17 分"，说明脚手架设计比模型本身更重要。Antigravity (Gemini 3 Pro) 和 Codex CLI (GPT-5.3) 紧随其后。Cursor 72.8% 表现不俗。有趣的是，同样是 Opus 4.5 模型，Claude Code 比其他 Agent 高出 17 分——架构优势明显。',
+  },
+  pricing: {
+    title: '💰 月费对比（个人付费）',
+    desc: '各工具不同档位的月订阅费用',
+    type: 'bar',
+    labels: ['Claude Code','Cursor','Windsurf','GitHub Copilot'],
+    datasets: [
+      { label: '入门', data: [20, 20, 15, 10], backgroundColor: ['#d9775788','#58a6ff88','#3fb95088','#f0db4f88'], borderRadius: 4 },
+      { label: '重度用户', data: [200, 200, 200, 39], backgroundColor: ['#d97757','#58a6ff','#3fb950','#f0db4f'], borderRadius: 4 },
+    ],
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'USD/月' } } },
+    insight: '入门价 Copilot $10 最低，但 Pro+ 需要 $39 才能用旗舰模型。Claude Code 和 Cursor $20 起步，但重度用户都面临 $150-200/月的天花板。Windsurf 入门价 $15 最实惠。关键在于"隐性成本"：Cursor 超额费可能让实际账单翻倍，Claude Code API 用量也可能超出预期。Copilot 的固定费率最可预测。',
+  },
+  weakness: {
+    title: '⚠️ 各工具致命短板对比',
+    desc: '越大 = 问题越严重，越低越好',
+    type: 'radar',
+    labels: ['隐性成本','学习曲线','生态锁定','代码质量','可调试性','速度'],
+    datasets: [
+      { label: 'Claude Code', data: [85, 70, 30, 10, 30, 50], borderColor: C.claude, backgroundColor: C.claude + '15', pointBackgroundColor: C.claude, borderWidth: 2 },
+      { label: 'Cursor', data: [80, 20, 40, 20, 20, 20], borderColor: C.cursor, backgroundColor: C.cursor + '15', pointBackgroundColor: C.cursor, borderWidth: 2 },
+      { label: 'Windsurf', data: [40, 25, 50, 80, 60, 10], borderColor: C.windsurf, backgroundColor: C.windsurf + '15', pointBackgroundColor: C.windsurf, borderWidth: 2 },
+      { label: 'Copilot', data: [10, 15, 85, 40, 25, 35], borderColor: C.copilot, backgroundColor: C.copilot + '15', pointBackgroundColor: C.copilot, borderWidth: 2 },
+    ],
+    scales: { r: { beginAtZero: true, max: 100, ticks: { stepSize: 20, backdropColor: 'transparent', color: '#555' }, grid: { color: '#2d2f3a' }, angleLines: { color: '#2d2f3a' }, pointLabels: { color: '#e1e4e8', font: { size: 11 } } } },
+    insight: 'Claude Code 最大短板是隐性成本（API 超额）和学习曲线（终端操作）。Cursor 的"短板"最短——最均衡但也意味着没有突出优势。Windsurf 在代码质量上差距明显。Copilot 的生态锁定最严重——深度绑定 GitHub。注意 Windsurf 质量短板区域最大，Claude Code 成本区域最大——选择工具就是在这些短板之间做取舍。',
+  }
+};
+
+function renderChart(tabKey) {
+  const cfg = configs[tabKey];
+  if (!cfg) return;
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+  if (mainChart) mainChart.destroy();
+  const isRadar = cfg.type === 'radar';
+  mainChart = new Chart(document.getElementById('mainChart').getContext('2d'), {
+    type: cfg.type, data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: true, position: 'bottom', labels: { color: '#8b949e', padding: 16, usePointStyle: true, font: { size: 11 } } },
+        tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 10, cornerRadius: 8 }
+      },
+      scales: cfg.scales || { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e' } } }
+    }
+  });
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); renderChart(t.dataset.tab);
+});
+renderChart('radar');
+</script>
+</body>
+</html>

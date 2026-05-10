@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="2026 大模型 API 定价矩阵">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="主流 LLM API 输入/输出定价对比，涵盖 GPT-5、Claude Opus 4.7、Gemini 3.1 Pro、DeepSeek V4 等，支持上下文窗口和速率限制对比">
+<meta name="chart-tags" content="LLM,API,定价,大模型,GPT,Claude,Gemini,DeepSeek">
+<title>2026 大模型 API 定价矩阵</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .header .subtitle span { color: #a371f7; }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: linear-gradient(135deg,#1c1e26,#1a1c25); border-radius: 12px; padding: 18px 20px; border: 1px solid #2d2f3a; }
+  .stat-card .label { font-size: 11px; color: #8b949e; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-card .sub { font-size: 11px; color: #555; }
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 9px 20px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .tab:hover { border-color: #a371f7; color: #a371f7; }
+  .tab.active { background: #a371f7; color: #fff; border-color: #a371f7; }
+  .chart-area { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .chart-area h2 { font-size: 15px; color: #f0f6fc; }
+  .chart-area .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 14px; }
+  .chart-wrap { position: relative; height: 440px; }
+  .insight { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #a371f7; }
+  .insight h3 { font-size: 13px; color: #a371f7; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+
+  /* 热力图表格 */
+  .heatmap { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; overflow-x: auto; margin-bottom: 16px; }
+  .heatmap h3 { font-size: 13px; color: #f0f6fc; margin-bottom: 10px; }
+  .hm-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .hm-table th { text-align: left; padding: 8px 10px; color: #555; font-weight: 600; border-bottom: 1px solid #2d2f3a; }
+  .hm-table td { padding: 8px 10px; border-bottom: 1px solid #1a1c25; font-variant-numeric: tabular-nums; }
+  .price-cell { text-align: right; font-weight: 600; font-family: monospace; }
+  .tier-premium { border-left: 3px solid #ffd700; }
+  .tier-workhorse { border-left: 3px solid #58a6ff; }
+  .tier-budget { border-left: 3px solid #3fb950; }
+  .provider-badge { display: inline-block; padding: 1px 8px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .provider-openai { background: #1a2a3a; color: #74aa9c; }
+  .provider-anthropic { background: #2a1a1a; color: #d97757; }
+  .provider-gemini { background: #1a2a1a; color: #8ab4f8; }
+  .provider-deepseek { background: #2a1a2a; color: #a371f7; }
+
+  @media (max-width: 768px) { .stats { grid-template-columns: repeat(2,1fr); } .chart-wrap { height: 340px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🧮 2026 大模型 API 定价矩阵</h1>
+    <div class="subtitle">价格单位：<span>$/百万 Tokens</span> ｜ 数据来源：<span>Morph LLM</span> · <span>LLM-Stats</span> · <span>Fungies.io</span> · 2026 年 4-5 月</div>
+  </div>
+  <div class="stats">
+    <div class="stat-card"><div class="label">最贵模型</div><div class="value" style="color:#ffd700">$180</div><div class="sub">GPT-5.5 Pro Output</div></div>
+    <div class="stat-card"><div class="label">最便宜输入</div><div class="value" style="color:#3fb950">$0.003</div><div class="sub">DeepSeek V4-Pro (折扣)</div></div>
+    <div class="stat-card"><div class="label">价差倍数</div><div class="value" style="color:#a371f7">60,000x</div><div class="sub">最贵/最便宜</div></div>
+    <div class="stat-card"><div class="label">最大上下文</div><div class="value" style="color:#58a6ff">1M+</div><div class="sub">Gemini / GPT-5.5 / Opus</div></div>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="input">📥 输入价格对比</div>
+    <div class="tab" data-tab="output">📤 输出价格对比</div>
+    <div class="tab" data-tab="context">📏 上下文窗口</div>
+    <div class="tab" data-tab="cost50m">💰 月成本模拟</div>
+  </div>
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">📥 输入价格对比（$/百万 Tokens）</h2>
+    <div class="chart-desc" id="chartDesc">价格越低越好。注意对数尺度——不同梯队模型价格差异极大</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">DeepSeek V4 Flash 输入价格仅 $0.0028/MTok，GPT-5.5 Pro 输出高达 $180/MTok——差距超 60,000 倍。价格分层极为明显：Premium（Opus/GPT-5.5）、Workhorse（Sonnet/GPT-5.4）、Budget（DeepSeek/Gemini Flash）。市场呈现"沙漏型"格局：两头热（超强和超便宜），中间内卷。提示词缓存可降低 70-90% 输入成本，实际账单远低于标价。</p>
+  </div>
+  <div class="heatmap">
+    <h3>📋 全模型定价表</h3>
+    <table class="hm-table">
+      <thead><tr><th>层级</th><th>厂商</th><th>模型</th><th>输入 ($/MTok)</th><th>输出 ($/MTok)</th><th>上下文</th><th>特点</th></tr></thead>
+      <tbody>
+        <tr class="tier-premium"><td>🔶 Premium</td><td><span class="provider-badge provider-openai">OpenAI</span></td><td>GPT-5.5 Pro</td><td class="price-cell" style="color:#ffd700">$30.00</td><td class="price-cell" style="color:#ffd700">$180.00</td><td>1M</td><td>最强推理，科研级</td></tr>
+        <tr class="tier-premium"><td>🔶 Premium</td><td><span class="provider-badge provider-anthropic">Anthropic</span></td><td>Claude Opus 4.7</td><td class="price-cell" style="color:#d97757">$5.00</td><td class="price-cell" style="color:#d97757">$25.00</td><td>1M</td><td>编程/写作 天花板</td></tr>
+        <tr class="tier-premium"><td>🔶 Premium</td><td><span class="provider-badge provider-openai">OpenAI</span></td><td>GPT-5.5</td><td class="price-cell">$5.00</td><td class="price-cell">$30.00</td><td>1M</td><td>全能旗舰</td></tr>
+        <tr class="tier-workhorse"><td>🔵 Workhorse</td><td><span class="provider-badge provider-anthropic">Anthropic</span></td><td>Claude Sonnet 4.6</td><td class="price-cell" style="color:#58a6ff">$3.00</td><td class="price-cell" style="color:#58a6ff">$15.00</td><td>200K</td><td>SWE-bench 72.7%</td></tr>
+        <tr class="tier-workhorse"><td>🔵 Workhorse</td><td><span class="provider-badge provider-openai">OpenAI</span></td><td>GPT-5.4</td><td class="price-cell">$2.50</td><td class="price-cell">$15.00</td><td>1M</td><td>性价比旗舰</td></tr>
+        <tr class="tier-workhorse"><td>🔵 Workhorse</td><td><span class="provider-badge provider-gemini">Gemini</span></td><td>Gemini 3.1 Pro</td><td class="price-cell">$2.00</td><td class="price-cell">$12.00</td><td>1M+</td><td>多模态王者</td></tr>
+        <tr class="tier-workhorse"><td>🔵 Workhorse</td><td><span class="provider-badge provider-openai">OpenAI</span></td><td>GPT-4.1</td><td class="price-cell">$2.00</td><td class="price-cell">$8.00</td><td>1M</td><td>长上下文优化</td></tr>
+        <tr class="tier-workhorse"><td>🔵 Workhorse</td><td><span class="provider-badge provider-openai">OpenAI</span></td><td>GPT-5.1</td><td class="price-cell">$1.25</td><td class="price-cell">$10.00</td><td>400K</td><td>轻量旗舰</td></tr>
+        <tr class="tier-workhorse"><td>🔵 Workhorse</td><td><span class="provider-badge provider-gemini">Gemini</span></td><td>Gemini 2.5 Pro</td><td class="price-cell">$1.25</td><td class="price-cell">$10.00</td><td>1M</td><td>开发者最爱</td></tr>
+        <tr class="tier-budget"><td>🟢 Budget</td><td><span class="provider-badge provider-anthropic">Anthropic</span></td><td>Claude Haiku 4.5</td><td class="price-cell">$1.00</td><td class="price-cell">$5.00</td><td>200K</td><td>快速响应</td></tr>
+        <tr class="tier-budget"><td>🟢 Budget</td><td><span class="provider-badge provider-openai">OpenAI</span></td><td>GPT-5.4 Mini</td><td class="price-cell">$0.75</td><td class="price-cell">$4.50</td><td>400K</td><td>轻量任务</td></tr>
+        <tr class="tier-budget"><td>🟢 Budget</td><td><span class="provider-badge provider-gemini">Gemini</span></td><td>Gemini 2.5 Flash</td><td class="price-cell">$0.30</td><td class="price-cell">$2.50</td><td>1M</td><td>免费额度 15rpm</td></tr>
+        <tr class="tier-budget"><td>🟢 Budget</td><td><span class="provider-badge provider-deepseek">DeepSeek</span></td><td>DeepSeek V3.2</td><td class="price-cell" style="color:#3fb950">$0.14</td><td class="price-cell" style="color:#3fb950">$0.28</td><td>164K</td><td>极致性价比</td></tr>
+        <tr class="tier-budget"><td>🟢 Budget</td><td><span class="provider-badge provider-openai">OpenAI</span></td><td>GPT-4.1-nano</td><td class="price-cell">$0.10</td><td class="price-cell">$0.40</td><td>1M</td><td>超低成本</td></tr>
+        <tr class="tier-budget"><td>🟢 Budget</td><td><span class="provider-badge provider-gemini">Gemini</span></td><td>Gemini 2.5 Flash-Lite</td><td class="price-cell" style="color:#3fb950">$0.10</td><td class="price-cell" style="color:#3fb950">$0.40</td><td>1M</td><td>最便宜主流</td></tr>
+        <tr class="tier-budget"><td>🟢 Budget</td><td><span class="provider-badge provider-deepseek">DeepSeek</span></td><td>DeepSeek V4 Flash</td><td class="price-cell" style="color:#3fb950">$0.0028</td><td class="price-cell" style="color:#3fb950">$0.28</td><td>—</td><td>💥 极致低价</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+let mainChart = null;
+const CTX = () => document.getElementById('mainChart').getContext('2d');
+
+const MODELS = ['GPT-5.5 Pro','Claude Opus 4.7','GPT-5.5','Claude Sonnet 4.6','GPT-5.4','Gemini 3.1 Pro','GPT-4.1','Gemini 2.5 Pro','Claude Haiku 4.5','GPT-5.4 Mini','Gemini 2.5 Flash','DeepSeek V3.2','GPT-4.1-nano','Gemini 2.5 Flash-Lite','DeepSeek V4 Flash'];
+
+const COLORS_MAP = {
+  'GPT-5.5 Pro':'#74aa9c','Claude Opus 4.7':'#d97757','GPT-5.5':'#74aa9c','Claude Sonnet 4.6':'#d97757','GPT-5.4':'#74aa9c','Gemini 3.1 Pro':'#8ab4f8','GPT-4.1':'#74aa9c','Gemini 2.5 Pro':'#8ab4f8','Claude Haiku 4.5':'#d97757','GPT-5.4 Mini':'#74aa9c','Gemini 2.5 Flash':'#8ab4f8','DeepSeek V3.2':'#a371f7','GPT-4.1-nano':'#74aa9c','Gemini 2.5 Flash-Lite':'#8ab4f8','DeepSeek V4 Flash':'#a371f7'
+};
+
+const configs = {
+  input: {
+    title: '📥 输入价格对比（$/百万 Tokens）',
+    desc: '价格越低越好，对数尺度显示巨大跨度',
+    labels: [...MODELS].reverse(),
+    datasets: [{
+      label: '$/MTok 输入',
+      data: [30,5,5,3,2.5,2,2,1.25,1,0.75,0.30,0.14,0.10,0.10,0.0028].reverse(),
+      backgroundColor: [...MODELS].reverse().map(m => COLORS_MAP[m] + '99'),
+      borderColor: [...MODELS].reverse().map(m => COLORS_MAP[m]),
+      borderWidth: 1, borderRadius: 4,
+    }],
+    indexAxis: 'y',
+    scales: { x: { type: 'logarithmic', title: { display: true, text: '$/百万 Tokens (对数)' }, ticks: { callback: v => '$' + v } } },
+    insight: '输入价格从 $30 到 $0.0028 跨越 4 个数量级。DeepSeek V4 Flash 是 GPT-5.5 Pro 的 1/10,000。GPT-5.5 Pro 的溢价来自推理深度（思维链/自省），适合科研和复杂推理。实用选择在 $1-3/MTok 区间——Sonnet、GPT-5.4、Gemini Pro 三足鼎立。缓存命中可将成本降低最多 90%。',
+  },
+  output: {
+    title: '📤 输出价格对比（$/百万 Tokens）',
+    desc: '输出价格通常比输入高 3-6 倍',
+    labels: [...MODELS].reverse(),
+    datasets: [{
+      label: '$/MTok 输出',
+      data: [180,25,30,15,15,12,8,10,5,4.50,2.50,0.28,0.40,0.40,0.28].reverse(),
+      backgroundColor: [...MODELS].reverse().map(m => COLORS_MAP[m] + '99'),
+      borderColor: [...MODELS].reverse().map(m => COLORS_MAP[m]),
+      borderWidth: 1, borderRadius: 4,
+    }],
+    indexAxis: 'y',
+    scales: { x: { type: 'logarithmic', title: { display: true, text: '$/百万 Tokens (对数)' }, ticks: { callback: v => '$' + v } } },
+    insight: '输出价格差异更大——GPT-5.5 Pro 的 $180 是 DeepSeek V3.2 $0.28 的 643 倍。输出 Token 是 LLM 真正的成本中心（生成比理解贵得多）。Claude Opus $25 的输出定价在旗舰模型中具有竞争力。对于高吞吐场景，DeepSeek 和 Gemini Flash 系是唯一经济上可行的选择。',
+  },
+  context: {
+    title: '📏 上下文窗口对比',
+    desc: '支持的最大上下文长度（Tokens），越长越好',
+    labels: [...MODELS].reverse(),
+    datasets: [{
+      label: '上下文 (Tokens)',
+      data: [1000000,1000000,1000000,200000,1000000,1000000,1000000,1000000,200000,400000,1000000,164000,1000000,1000000,0].reverse(),
+      backgroundColor: [...MODELS].reverse().map(m => COLORS_MAP[m] + '99'),
+      borderColor: [...MODELS].reverse().map(m => COLORS_MAP[m]),
+      borderWidth: 1, borderRadius: 4,
+    }],
+    indexAxis: 'y',
+    scales: { x: { beginAtZero: true, title: { display: true, text: 'Tokens' }, ticks: { callback: v => (v/1000).toFixed(0)+'K' } } },
+    insight: '1M 上下文已成为旗舰标配——GPT-5.5、Claude Opus 4.7、Gemini 3.1 Pro 均支持。Gemini 系列在上下文能力上最激进，全系标配 1M。Claude Sonnet 仍停留在 200K，是产品线上最明显的短板。DeepSeek V3.2 的 164K 在预算档表现不错。对需要处理超长文档/代码库的场景，1M 是刚需。',
+  },
+  cost50m: {
+    title: '💰 月成本模拟（5000 万输出 Tokens）',
+    desc: '每月生成 5000 万输出 Token 的总成本，按输出价计算',
+    labels: ['DeepSeek V3.2','GPT-4.1-nano','Gemini 2.5 Flash-Lite','DeepSeek V4 Flash','Gemini 2.5 Flash','GPT-5.4 Mini','Claude Haiku 4.5','GPT-5.1','Gemini 2.5 Pro','GPT-4.1','Gemini 3.1 Pro','GPT-5.4','Claude Sonnet 4.6','Claude Opus 4.7','GPT-5.5','GPT-5.5 Pro'],
+    datasets: [{
+      label: '月成本 (USD)',
+      data: [21, 20, 20, 14, 125, 225, 250, 500, 500, 400, 600, 750, 750, 1250, 1500, 9000],
+      backgroundColor: ['#a371f7','#74aa9c','#8ab4f8','#a371f7','#8ab4f8','#74aa9c','#d97757','#74aa9c','#8ab4f8','#74aa9c','#8ab4f8','#74aa9c','#d97757','#d97757','#74aa9c','#ffd700'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'USD/月' }, ticks: { callback: v => '$'+(v/1000).toFixed(v>=1000?1:0)+'K' } } },
+    insight: '同样 5000 万输出 Token，DeepSeek 只需 $14-21，GPT-5.5 Pro 需要 $9,000——差距 450 倍以上。对于原型和 MVP，DeepSeek 或 Gemini Flash-Lite 足以胜任。生产环境中的典型策略是"混合路由"：简单请求走廉价模型，复杂推理走旗舰模型，综合成本可降低 60-80%。',
+  }
+};
+
+function renderChart(tabKey) {
+  const cfg = configs[tabKey];
+  if (!cfg) return;
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+  if (mainChart) mainChart.destroy();
+  mainChart = new Chart(CTX(), {
+    type: cfg.type || 'bar',
+    data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      indexAxis: cfg.indexAxis,
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 10, cornerRadius: 8 }
+      },
+      scales: cfg.scales || { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e', maxRotation: 45 } } }
+    }
+  });
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active'); renderChart(t.dataset.tab);
+});
+renderChart('input');
+</script>
+</body>
+</html>

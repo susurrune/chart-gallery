@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="2026 AI 全景仪表盘">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="综合仪表盘：AI 采用率、大模型格局、价格趋势、编程助手对比、开发者生态，一页尽览">
+<meta name="chart-tags" content="AI,全景,仪表盘,综合,2026">
+<title>2026 AI 全景仪表盘</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0a0f; color: #e1e4e8; padding: 20px; }
+  .container { max-width: 1400px; margin: 0 auto; }
+
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .header h1 { font-size: 24px; font-weight: 700; color: #f0f6fc; }
+  .header h1 span { color: #a371f7; }
+  .header .date { color: #555; font-size: 12px; }
+
+  .metric-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 16px; }
+  .metric { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px; padding: 12px 14px; text-align: center; }
+  .metric .val { font-size: 20px; font-weight: 700; }
+  .metric .lbl { font-size: 10px; color: #555; margin-top: 2px; text-transform: uppercase; letter-spacing: .3px; }
+
+  .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+  .panel { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 10px; padding: 14px 16px; }
+  .panel h3 { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .panel .chart-wrap { position: relative; height: 200px; }
+  .panel.full { grid-column: 1 / -1; }
+  .panel.full .chart-wrap { height: 250px; }
+
+  /* 热力图 */
+  .hm { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+  .hm th { padding: 6px 8px; text-align: center; color: #555; font-weight: 600; border-bottom: 1px solid #2d2f3a; }
+  .hm td { padding: 6px 8px; text-align: center; border-bottom: 1px solid #1a1c25; }
+  .hm td:first-child { text-align: left; color: #8b949e; }
+  .cell-best { background: #1a3a2a; color: #3fb950; font-weight: 600; }
+  .cell-mid { background: #2a2a1a; color: #d97757; }
+  .cell-worst { background: #3a1a1a; color: #f85149; }
+
+  .rank-list { font-size: 12px; }
+  .rank-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1a1c25; }
+  .rank-item:last-child { border-bottom: none; }
+  .rank-item .rname { color: #e1e4e8; }
+  .rank-item .rval { color: #a371f7; font-weight: 600; font-family: monospace; }
+
+  .insight-box { background: linear-gradient(135deg,#1a1c25,#1c1e26); border: 1px solid #2d2f3a; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; border-left: 3px solid #a371f7; }
+  .insight-box p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+
+  @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } .metric-row { grid-template-columns: repeat(3, 1fr); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🧠 <span>2026</span> AI 全景仪表盘</h1>
+    <div class="date">更新于 2026.05.11</div>
+  </div>
+
+  <div class="metric-row">
+    <div class="metric"><div class="val" style="color:#3fb950">90%</div><div class="lbl">AI 工具采用率</div></div>
+    <div class="metric"><div class="val" style="color:#58a6ff">21,575</div><div class="lbl">NeurIPS 2025 投稿</div></div>
+    <div class="metric"><div class="val" style="color:#a371f7">80.9%</div><div class="lbl">AI 编程 SWE-bench</div></div>
+    <div class="metric"><div class="val" style="color:#ffd700">365K</div><div class="lbl">Q1 最大项目星标</div></div>
+    <div class="metric"><div class="val" style="color:#d97757">$0.003</div><div class="lbl">最低 LLM 输入价</div></div>
+    <div class="metric"><div class="val" style="color:#f0db4f">66%</div><div class="lbl">TS 年增长率</div></div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="panel">
+      <h3>📊 AI 工具采用率</h3>
+      <div class="chart-wrap"><canvas id="chartAdoption"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>💰 语言薪资溢价</h3>
+      <div class="chart-wrap"><canvas id="chartSalary"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>📈 LLM 价格趋势 2025→2026</h3>
+      <div class="chart-wrap"><canvas id="chartPriceTrend"></canvas></div>
+    </div>
+    <div class="panel">
+      <h3>🏆 热门项目分类占比</h3>
+      <div class="chart-wrap"><canvas id="chartCategory"></canvas></div>
+    </div>
+  </div>
+
+  <div class="panel full">
+    <h3>📋 AI 编程助手定价矩阵</h3>
+    <table class="hm">
+      <thead><tr><th style="text-align:left">工具</th><th>入门价</th><th>重度价</th><th>SWE-bench</th><th>上下文</th><th>Agent</th><th>IDE</th><th>综合评分</th></tr></thead>
+      <tbody>
+        <tr><td>Claude Code</td><td>$20</td><td>$200</td><td class="cell-best">80.9%</td><td>200K</td><td class="cell-best">✅</td><td>终端</td><td class="cell-best">A-</td></tr>
+        <tr><td>Cursor</td><td>$20</td><td>$200</td><td>72.8%</td><td>200K</td><td>✅</td><td class="cell-best">VS Code</td><td>B+</td></tr>
+        <tr><td>Windsurf</td><td class="cell-best">$15</td><td>$200</td><td>—</td><td>128K</td><td>✅</td><td>VS Code</td><td>B-</td></tr>
+        <tr><td>Copilot</td><td class="cell-best">$10</td><td class="cell-best">$39</td><td>—</td><td>128K</td><td class="cell-worst">⚠️</td><td class="cell-best">全 IDE</td><td>B</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box">
+    <p><strong>🧠 一句话总结 2026：</strong> AI 开发者工具从"新奇玩具"变成"日常标配"——90% 采用率意味着不用 AI 的开发者已成少数派。Skills 生态全面爆发（43% 热门项目），开源替代闭源（11 天克隆 Claude Design），价格战白热化（DeepSeek $0.003/MTok）。对开发者而言：混合使用多个 AI 工具已成为最高效策略。</p>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const genCtx = id => document.getElementById(id).getContext('2d');
+const tooltipOpts = { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 8, cornerRadius: 6 };
+
+// 1. AI 工具采用率 (环形)
+new Chart(genCtx('chartAdoption'), {
+  type: 'doughnut',
+  data: {
+    labels: ['每周使用','偶尔使用','从不使用'],
+    datasets: [{ data: [90, 7, 3], backgroundColor: ['#3fb950','#58a6ff','#444'], borderWidth: 0 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 10, usePointStyle: true, font: { size: 10 } } }, tooltip: tooltipOpts } }
+});
+
+// 2. 语言薪资溢价
+new Chart(genCtx('chartSalary'), {
+  type: 'bar',
+  data: {
+    labels: ['Rust','AI/ML','Go','TypeScript','Python','JavaScript'],
+    datasets: [{ data: [32, 30, 25, 22, 18, 12], backgroundColor: ['#dea584','#a371f7','#00ADD8','#3178c6','#3572A5','#f0db4f'], borderRadius: 4 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false }, tooltip: tooltipOpts }, scales: { x: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e', callback: v => v + '%' } }, y: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 } } } } }
+});
+
+// 3. LLM 价格趋势
+new Chart(genCtx('chartPriceTrend'), {
+  type: 'line',
+  data: {
+    labels: ['2025 Q1','2025 Q2','2025 Q3','2025 Q4','2026 Q1','2026 Q2'],
+    datasets: [
+      { label: 'GPT-5 (旗舰)', data: [50, 40, 30, 25, 15, 10], borderColor: '#74aa9c', tension: 0.3, pointRadius: 3, borderWidth: 2 },
+      { label: 'Claude Opus', data: [40, 35, 30, 25, 25, 25], borderColor: '#d97757', tension: 0.3, pointRadius: 3, borderWidth: 2 },
+      { label: 'Gemini Pro', data: [30, 25, 20, 15, 10, 10], borderColor: '#8ab4f8', tension: 0.3, pointRadius: 3, borderWidth: 2 },
+      { label: 'DeepSeek', data: [5, 3, 1, 0.5, 0.3, 0.14], borderColor: '#a371f7', tension: 0.3, pointRadius: 3, borderWidth: 2 },
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 10, usePointStyle: true, font: { size: 9 } } }, tooltip: tooltipOpts }, scales: { y: { type: 'logarithmic', grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e', callback: v => '$' + v } }, x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 9 } } } } }
+});
+
+// 4. 分类占比
+new Chart(genCtx('chartCategory'), {
+  type: 'doughnut',
+  data: {
+    labels: ['AI Skills','开发工具','AI Agent','框架','安全'],
+    datasets: [{ data: [43, 24, 17, 10, 6], backgroundColor: ['#a371f7','#58a6ff','#3fb950','#d97757','#f85149'], borderWidth: 0 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 12, usePointStyle: true, font: { size: 10 } } }, tooltip: tooltipOpts } }
+});
+</script>
+</body>
+</html>

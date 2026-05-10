@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="2026 全球开发者薪资对比">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="基于 CodeSubmit、daily.dev、TechStaq 等最新薪资调查，按国家、城市、经验、角色分类对比">
+<meta name="chart-tags" content="薪资,开发者,全球对比,职业">
+<title>2026 全球开发者薪资对比</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .header .subtitle span { color: #3fb950; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: linear-gradient(135deg,#1c1e26,#1a1c25); border-radius: 12px; padding: 18px 20px; border: 1px solid #2d2f3a; }
+  .stat-card .label { font-size: 11px; color: #8b949e; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-card .sub { font-size: 11px; color: #555; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 9px 20px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .tab:hover { border-color: #3fb950; color: #3fb950; }
+  .tab.active { background: #3fb950; color: #fff; border-color: #3fb950; }
+
+  .chart-area { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .chart-area h2 { font-size: 15px; color: #f0f6fc; }
+  .chart-area .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 14px; }
+  .chart-wrap { position: relative; height: 420px; }
+
+  .insight { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #3fb950; }
+  .insight h3 { font-size: 13px; color: #3fb950; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+
+  .data-table-wrap { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; overflow-x: auto; }
+  .data-table-wrap h3 { font-size: 13px; color: #f0f6fc; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 8px 10px; color: #555; font-weight: 600; border-bottom: 1px solid #2d2f3a; }
+  td { padding: 8px 10px; border-bottom: 1px solid #1a1c25; }
+  tr:hover td { background: #1a1c25; }
+  .usd { color: #3fb950; font-weight: 600; }
+  .eur { color: #58a6ff; font-weight: 600; }
+
+  @media (max-width: 768px) { .stats { grid-template-columns: repeat(2,1fr); } .chart-wrap { height: 320px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>💰 2026 全球开发者薪资对比</h1>
+    <div class="subtitle">数据来源：<span>CodeSubmit 2026</span> · <span>daily.dev 2026</span> · <span>TechStaq 2026</span> · <span>Axis Intelligence</span></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="label">最高平均薪资</div><div class="value" style="color:#3fb950">$110,140</div><div class="sub">美国 · 全球第一</div></div>
+    <div class="stat-card"><div class="label">欧洲最高</div><div class="value" style="color:#3fb950">$97,518</div><div class="sub">瑞士 · 苏黎世</div></div>
+    <div class="stat-card"><div class="label">Senior vs Junior</div><div class="value" style="color:#58a6ff">2.5x</div><div class="sub">经验溢价倍数（全球平均）</div></div>
+    <div class="stat-card"><div class="label">AI/ML 溢价</div><div class="value" style="color:#a371f7">+30%</div><div class="sub">AI 工程师 vs 普通开发</div></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="country">🌍 国家对比</div>
+    <div class="tab" data-tab="city">🏙️ 城市对比</div>
+    <div class="tab" data-tab="experience">📈 经验梯度</div>
+    <div class="tab" data-tab="role">👔 角色分布</div>
+  </div>
+
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">🌍 软件工程师平均年薪（美元）</h2>
+    <div class="chart-desc" id="chartDesc">各国软件工程师平均年薪，按 USD 计算</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">美国以 $110,140 平均年薪断层领先。瑞士以 $97,518 紧随其后，考虑税率和购买力后实际收入可能超过美国。以色列（$71,559）受益于网络安全和 AI 创业浪潮跻身三强。值得注意的是印度（$7,725）——虽然是绝对值最低，但购买力平价调整后约为 $25-30K，且 15-25% 的年增速跑赢通胀。</p>
+  </div>
+
+  <div class="data-table-wrap">
+    <h3>📋 完整薪资数据表（USD/年）</h3>
+    <table>
+      <thead><tr><th>国家</th><th>初级</th><th>资深</th><th>平均</th><th>AI/ML 溢价</th><th>增速</th></tr></thead>
+      <tbody>
+        <tr><td>🇺🇸 美国</td><td>$69K</td><td>$104K+</td><td class="usd">$110K</td><td>+35%</td><td>+3%</td></tr>
+        <tr><td>🇨🇭 瑞士</td><td>$90K</td><td>$128K</td><td class="usd">$97.5K</td><td>+40%</td><td>+2%</td></tr>
+        <tr><td>🇮🇱 以色列</td><td>$70K</td><td>$115K</td><td class="usd">$71.5K</td><td>+35%</td><td>+5%</td></tr>
+        <tr><td>🇩🇪 德国</td><td>$51K</td><td>$78K</td><td class="usd">$52.3K</td><td>+30%</td><td>+3%</td></tr>
+        <tr><td>🇬🇧 英国</td><td>$48K</td><td>$72K</td><td class="usd">$48.5K</td><td>+28%</td><td>+2%</td></tr>
+        <tr><td>🇨🇦 加拿大</td><td>$55K</td><td>$87K</td><td class="usd">$72.7K</td><td>+25%</td><td>+3%</td></tr>
+        <tr><td>🇦🇺 澳大利亚</td><td>$52K</td><td>$80K</td><td class="usd">$56.8K</td><td>+25%</td><td>+3%</td></tr>
+        <tr><td>🇯🇵 日本</td><td>$30K</td><td>$58K</td><td class="usd">$35.2K</td><td>+20%</td><td>+1%</td></tr>
+        <tr><td>🇨🇳 中国</td><td>$15K</td><td>$40K</td><td class="usd">$22.5K</td><td>+30%</td><td>+5%</td></tr>
+        <tr><td>🇮🇳 印度</td><td>$5.5K</td><td>$12K</td><td class="usd">$7.7K</td><td>+40%</td><td>+15%</td></tr>
+        <tr><td>🇵🇱 波兰</td><td>$18K</td><td>$45K</td><td class="usd">$28.4K</td><td>+25%</td><td>+20%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let mainChart = null;
+
+const configs = {
+  country: {
+    title: '🌍 软件工程师平均年薪（美元）',
+    desc: '各国软件工程师平均年薪，按 USD 计算',
+    type: 'bar',
+    labels: ['美国','瑞士','以色列','加拿大','澳大利亚','德国','英国','波兰','日本','中国','印度'],
+    datasets: [{
+      label: '平均年薪 (USD)',
+      data: [110140, 97518, 71559, 72700, 56800, 52275, 48500, 28400, 35200, 22500, 7725],
+      backgroundColor: ['#3fb950','#58a6ff','#a371f7','#d97757','#ffd700','#f0db4f','#f85149','#79c0ff','#ff7b72','#db6d28','#7ee787'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'USD/年' }, ticks: { callback: v => '$'+(v/1000).toFixed(0)+'K' } } },
+    insight: '美国以 $110,140 平均年薪断层领先。瑞士以 $97,518 紧随其后，考虑税率更低，实际购买力可能超过美国。印度（$7,725）绝对值最低但增速 15-25%，且购买力平价后实际约 $25-30K。东欧（波兰为代表）增速 20% 领跑全球，正在成为欧洲外包新中心。',
+  },
+  city: {
+    title: '🏙️ 全球主要科技城市薪资对比',
+    desc: '软件工程师平均年薪（美元），2026',
+    type: 'bar',
+    labels: ['旧金山','苏黎世','纽约','西雅图','伦敦','柏林','巴黎','东京','新加坡','上海','班加罗尔'],
+    datasets: [{
+      label: '平均年薪 (USD)',
+      data: [175000, 160000, 160000, 168000, 98000, 75000, 65000, 62000, 55000, 42000, 15000],
+      backgroundColor: ['#3fb950','#58a6ff','#f0db4f','#a371f7','#d97757','#3178c6','#f85149','#ff7b72','#db6d28','#79c0ff','#7ee787'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'USD/年' }, ticks: { callback: v => '$'+(v/1000).toFixed(0)+'K' } } },
+    insight: '旧金山以 $175K 居首，但扣除高昂生活成本后实际购买力未必优于苏黎世。苏黎世与纽约并列 $160K+——但瑞士税率更低。西雅图（$168K）受益于亚马逊和微软总部效应。伦敦（$98K）和柏林（$75K）是欧洲除瑞士外最高薪城市。',
+  },
+  experience: {
+    title: '📈 美国薪资按经验梯度',
+    desc: '美国软件工程师各经验级别平均年薪（美元）',
+    type: 'bar',
+    labels: ['Entry (<2yr)','Mid (3-5yr)','Senior (6-10yr)','Staff (11-15yr)','Principal (15yr+)'],
+    datasets: [{
+      label: '年薪 (USD)',
+      data: [105000, 135000, 165000, 200000, 250000],
+      backgroundColor: ['#3fb950','#58a6ff','#d97757','#a371f7','#ffd700'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'USD/年' }, ticks: { callback: v => '$'+(v/1000).toFixed(0)+'K' } } },
+    insight: '从入门到 Principal，薪资增长约 2.4 倍。最大的跃升出现在 Senior → Staff（$165K→$200K，+21%），这是从"执行者"到"决策者"的质变。Principal 工程师（$250K+）通常还有股票和奖金，实际总包可达 $350-500K。AI/ML 方向各层级再加 25-40%。',
+  },
+  role: {
+    title: '👔 按角色薪资分布（美国）',
+    desc: '各技术角色薪资范围，从入门到资深',
+    type: 'bar',
+    labels: ['DevOps','Backend','Fullstack','AI/ML','Frontend','Mobile','Data','Security'],
+    datasets: [{
+      label: 'Junior',
+      data: [154000, 130000, 126000, 145000, 107000, 115000, 120000, 140000],
+      backgroundColor: '#58a6ff88',
+      borderRadius: 4,
+    }, {
+      label: 'Senior',
+      data: [199000, 185000, 191000, 220000, 174000, 178000, 190000, 210000],
+      backgroundColor: '#d9775788',
+      borderRadius: 4,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'USD/年' }, ticks: { callback: v => '$'+(v/1000).toFixed(0)+'K' } } },
+    insight: 'DevOps 和 Security 薪资最高——稀缺性驱动。AI/ML 工程师 Senior 级别达 $220K，且增速最快。Frontend 传统上被认为"薪资偏低"，但 Senior 级别 $174K 表明差距正在缩小。全栈 Senior $191K，兼具广度与深度。值得注意的是远程办公薪资比 On-site 平均低 8%，但生活成本节省远超此数。',
+  }
+};
+
+function renderChart(tabKey) {
+  const cfg = configs[tabKey];
+  if (!cfg) return;
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+  if (mainChart) mainChart.destroy();
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  mainChart = new Chart(ctx, {
+    type: cfg.type,
+    data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: cfg.datasets.length > 1 ? { display: true, position: 'bottom', labels: { color: '#8b949e', padding: 20, usePointStyle: true, font: { size: 11 } } } : { display: false },
+        tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 10, cornerRadius: 8 }
+      },
+      scales: cfg.scales || { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e', maxRotation: 45 } } }
+    }
+  });
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  renderChart(tab.dataset.tab);
+});
+
+renderChart('country');
+</script>
+</body>
+</html>

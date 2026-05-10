@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="2026 开发者生态调查综合报告">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="基于 Stack Overflow 2025、JetBrains 2025/2026 AI Pulse 等调查报告，汇总编程语言排名、AI 工具采用率、数据库趋势和 IDE 格局">
+<meta name="chart-tags" content="开发者调查,编程语言,AI,趋势,统计">
+<title>2026 开发者生态调查综合报告</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .header .subtitle span { color: #58a6ff; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: linear-gradient(135deg,#1c1e26,#1a1c25); border-radius: 12px; padding: 18px 20px; border: 1px solid #2d2f3a; }
+  .stat-card .label { font-size: 11px; color: #8b949e; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-card .sub { font-size: 11px; color: #555; }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { padding: 9px 20px; background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 8px; color: #8b949e; cursor: pointer; font-size: 13px; transition: all .2s; }
+  .tab:hover { border-color: #58a6ff; color: #58a6ff; }
+  .tab.active { background: #58a6ff; color: #fff; border-color: #58a6ff; }
+
+  .chart-area { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .chart-area h2 { font-size: 15px; color: #f0f6fc; }
+  .chart-area .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 14px; }
+  .chart-wrap { position: relative; height: 420px; }
+
+  .insight { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #58a6ff; }
+  .insight h3 { font-size: 13px; color: #58a6ff; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+
+  .data-table-wrap { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; overflow-x: auto; }
+  .data-table-wrap h3 { font-size: 13px; color: #f0f6fc; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 8px 10px; color: #555; font-weight: 600; border-bottom: 1px solid #2d2f3a; }
+  td { padding: 8px 10px; border-bottom: 1px solid #1a1c25; }
+  tr:hover td { background: #1a1c25; }
+  .src { font-size: 10px; color: #555; }
+
+  @media (max-width: 768px) { .stats { grid-template-columns: repeat(2,1fr); } .chart-wrap { height: 320px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📊 2026 开发者生态调查综合报告</h1>
+    <div class="subtitle">数据来源：<span>Stack Overflow 2025</span> · <span>JetBrains 2025</span> · <span>JetBrains AI Pulse Jan 2026</span></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="label">AI 工具周使用率</div><div class="value" style="color:#58a6ff">90%</div><div class="sub">JetBrains AI Pulse 2026</div></div>
+    <div class="stat-card"><div class="label">最常用语言</div><div class="value" style="color:#f0db4f">JavaScript</div><div class="sub">Stack Overflow 2025</div></div>
+    <div class="stat-card"><div class="label">增长最快语言</div><div class="value" style="color:#3178c6">TypeScript</div><div class="sub">JetBrains Promise Index +223</div></div>
+    <div class="stat-card"><div class="label">数据库之王</div><div class="value" style="color:#336791">PostgreSQL</div><div class="sub">55.6% 开发者使用</div></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="languages">💻 编程语言</div>
+    <div class="tab" data-tab="ai">🤖 AI 工具</div>
+    <div class="tab" data-tab="database">🗄️ 数据库</div>
+    <div class="tab" data-tab="ide">🛠️ IDE 格局</div>
+    <div class="tab" data-tab="promise">📈 Promise Index</div>
+  </div>
+
+  <div class="chart-area" id="chartArea">
+    <h2 id="chartTitle">💻 主要编程语言使用率</h2>
+    <div class="chart-desc" id="chartDesc">JetBrains 2025 开发者生态调查：过去 12 个月使用过的语言（可多选）</div>
+    <div class="chart-wrap"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <div class="insight" id="insightBox">
+    <h3>💡 关键发现</h3>
+    <p id="insightText">Python 以 35% 使用率首次超越 Java（33%）登顶，AI/数据科学驱动是主因。JavaScript 稳居第三（26%），但 TypeScript 以 Promise Index +223 成为增长最快的语言。Rust 连续 7 年蝉联"最受喜爱语言"——小众但忠诚度极高。PHP、Ruby、Objective-C 持续衰退。</p>
+  </div>
+
+  <div class="data-table-wrap">
+    <h3>📋 核心数据表</h3>
+    <table>
+      <thead><tr><th>类别</th><th>项目</th><th>采用率</th><th>趋势</th><th class="src">来源</th></tr></thead>
+      <tbody>
+        <tr><td>编程语言</td><td>Python</td><td>35%</td><td style="color:#3fb950">↑ +7pp</td><td class="src">JetBrains 2025</td></tr>
+        <tr><td>编程语言</td><td>Java</td><td>33%</td><td style="color:#d97757">→ 持平</td><td class="src">JetBrains 2025</td></tr>
+        <tr><td>编程语言</td><td>JavaScript</td><td>26%</td><td style="color:#d97757">→ 微降</td><td class="src">JetBrains 2025</td></tr>
+        <tr><td>编程语言</td><td>TypeScript</td><td>22%</td><td style="color:#3fb950">↑ +5pp</td><td class="src">JetBrains 2025</td></tr>
+        <tr><td>AI 工具</td><td>GitHub Copilot</td><td>29%</td><td style="color:#3fb950">↑ 稳健</td><td class="src">JetBrains AI Pulse</td></tr>
+        <tr><td>AI 工具</td><td>Claude Code</td><td>18%</td><td style="color:#3fb950">↑↑ 3%→18%</td><td class="src">JetBrains AI Pulse</td></tr>
+        <tr><td>AI 工具</td><td>Cursor</td><td>18%</td><td style="color:#3fb950">↑ 上升</td><td class="src">JetBrains AI Pulse</td></tr>
+        <tr><td>AI 工具</td><td>ChatGPT</td><td>45%</td><td style="color:#3fb950">↑ 最常用</td><td class="src">Stack Overflow 2025</td></tr>
+        <tr><td>数据库</td><td>PostgreSQL</td><td>55.6%</td><td style="color:#3fb950">↑ +7pp</td><td class="src">SO 2025</td></tr>
+        <tr><td>数据库</td><td>MySQL</td><td>40.8%</td><td style="color:#f85149">↓ 下降</td><td class="src">SO 2025</td></tr>
+        <tr><td>数据库</td><td>SQLite</td><td>38.2%</td><td style="color:#3fb950">↑ 上升</td><td class="src">SO 2025</td></tr>
+        <tr><td>数据库</td><td>MongoDB</td><td>36.3%</td><td style="color:#d97757">→ 持平</td><td class="src">SO 2025</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let mainChart = null;
+
+const COLORS = {
+  python: '#3572A5', java: '#b07219', js: '#f0db4f', ts: '#3178c6',
+  rust: '#dea584', go: '#00ADD8', kotlin: '#A97BFF', php: '#777BB3',
+  ruby: '#CC342D', csharp: '#178600', sql: '#e38c00',
+  copilot: '#6cc644', claude: '#d97757', cursor: '#58a6ff', chatgpt: '#10a37f',
+  psql: '#336791', mysql: '#00758F', sqlite: '#003B57', mongo: '#4DB33D',
+  vscode: '#007ACC', jetbrains: '#f97a12', cursor_ide: '#58a6ff', vim: '#019733',
+};
+
+const configs = {
+  languages: {
+    title: '💻 主要编程语言使用率（过去 12 个月）',
+    desc: 'JetBrains 2025 开发者生态调查 · 可多选',
+    type: 'bar',
+    labels: ['Python','Java','JavaScript','TypeScript','HTML/CSS','SQL','C#','Rust','Go','Kotlin'],
+    datasets: [{
+      label: '使用率 %',
+      data: [35, 33, 26, 22, 16, 15, 14, 12, 11, 8],
+      backgroundColor: [COLORS.python, COLORS.java, COLORS.js, COLORS.ts, '#e34c26', COLORS.sql, COLORS.csharp, COLORS.rust, COLORS.go, COLORS.kotlin],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, max: 40, title: { display: true, text: '使用率 %' } } },
+    insight: 'Python 以 35% 使用率首次超越 Java（33%）登顶。TypeScript 从 17% 跃升至 22%，是所有语言中增速最快的。Rust 虽仅 12% 但连续 7 年"最受喜爱"。Go（11%）和 Kotlin（8%）保持稳健增长。',
+  },
+  ai: {
+    title: '🤖 AI 开发工具采用率',
+    desc: 'JetBrains AI Pulse 2026.01 · 10,000+ 专业开发者调查',
+    type: 'bar',
+    labels: ['ChatGPT','GitHub Copilot','Claude Code','Cursor','Tabnine','Amazon Q','Codeium'],
+    datasets: [{
+      label: '采用率 %',
+      data: [45, 29, 18, 18, 7, 5, 4],
+      backgroundColor: [COLORS.chatgpt, COLORS.copilot, COLORS.claude, COLORS.cursor, '#a371f7,', '#ff9900', '#3fb950'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: '采用率 %' } } },
+    insight: '90% 开发者每周使用 AI 工具。ChatGPT 以 45% 居首。Claude Code 增速最猛——从 2025 年 4 月的 3% 飙升至 2026 年 1 月的 18%。Cursor 从 12% 升至 18%。GitHub Copilot 稳居第二（29%），但增速被 Claude Code 和 Cursor 追近。',
+  },
+  database: {
+    title: '🗄️ 数据库使用率排名',
+    desc: 'Stack Overflow 2025 开发者调查 · 过去一年使用过的数据库',
+    type: 'bar',
+    labels: ['PostgreSQL','MySQL','SQLite','MongoDB','Redis','MariaDB','Elasticsearch'],
+    datasets: [{
+      label: '使用率 %',
+      data: [55.6, 40.8, 38.2, 36.3, 22.5, 17.4, 16.8],
+      backgroundColor: [COLORS.psql, COLORS.mysql, COLORS.sqlite, COLORS.mongo, '#dc382d', '#c0765a', '#00bfb3'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: '使用率 %' } } },
+    insight: 'PostgreSQL（55.6%）超越 MySQL 成为开发者首选，一年内增长 7 个百分点。（从前端到 AI，从初创到大型企业，PG 已成默认选择）。SQLite（38.2%）在移动和嵌入式场景继续增长。MongoDB 文档模型在 AI 应用中的灵活度使其保持 36.3%。',
+  },
+  ide: {
+    title: '🛠️ IDE 编辑器格局',
+    desc: 'VS Code 绝对统治，但 AI 原生 IDE 正在改变战场',
+    type: 'bar',
+    labels: ['VS Code','JetBrains','Cursor','Vim/Neovim','Sublime Text','Emacs'],
+    datasets: [{
+      label: '使用率 %',
+      data: [62, 28, 18, 14, 6, 4],
+      backgroundColor: [COLORS.vscode, COLORS.jetbrains, COLORS.cursor_ide, COLORS.vim, '#ff9800', '#7c3aed'],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: '使用率 %' } } },
+    insight: 'VS Code 以 62% 占绝对统治地位，但值得注意的是 Cursor（基于 VS Code 的 AI 原生 IDE）达到 18%——"AI-first"编辑器正在从 VS Code 分流用户。JetBrains（28%）保持专业开发者首选地位，尤其在 Java/Kotlin 生态中不可撼动。',
+  },
+  promise: {
+    title: '📈 JetBrains Promise Index 2025',
+    desc: '综合生态活力指数：现有生态 + 增长潜力 + 社区热度，指数越高越被看好',
+    type: 'bar',
+    labels: ['TypeScript','Rust','Python','Go','C++','Kotlin','C#','Java','SQL'],
+    datasets: [{
+      label: 'Promise Index',
+      data: [223, 187, 131, 115, 104, 98, 82, 75, 60],
+      backgroundColor: [COLORS.ts, COLORS.rust, COLORS.python, COLORS.go, '#00599C', COLORS.kotlin, COLORS.csharp, COLORS.java, COLORS.sql],
+      borderRadius: 6,
+    }],
+    scales: { y: { beginAtZero: true, title: { display: true, text: 'Promise Index' } } },
+    insight: 'TypeScript 以 +223 登顶 Promise Index——既有巨大的现有生态（Node.js/React 全栈），又有极强增长动能（66% YoY GitHub 增长）。Rust（+187）位居第二：7 年"最受喜爱"语言 + 45% 企业在生产环境中使用。Python（+131）靠 AI 东风继续攀升。',
+  }
+};
+
+function renderChart(tabKey) {
+  const cfg = configs[tabKey];
+  if (!cfg) return;
+  document.getElementById('chartTitle').textContent = cfg.title;
+  document.getElementById('chartDesc').textContent = cfg.desc;
+  document.getElementById('insightText').textContent = cfg.insight;
+  if (mainChart) mainChart.destroy();
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  mainChart = new Chart(ctx, {
+    type: cfg.type,
+    data: { labels: cfg.labels, datasets: cfg.datasets },
+    options: {
+      indexAxis: cfg.indexAxis,
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 10, cornerRadius: 8 }
+      },
+      scales: cfg.scales || { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e', maxRotation: 45 } } }
+    }
+  });
+}
+
+document.getElementById('tabs').addEventListener('click', (e) => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  renderChart(tab.dataset.tab);
+});
+
+renderChart('languages');
+</script>
+</body>
+</html>

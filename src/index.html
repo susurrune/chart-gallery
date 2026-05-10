@@ -66,6 +66,8 @@
     margin-top: 8px; font-size: 11px; color: #444;
   }
   .card-body .meta-row .tag { background: #2a2a3a; padding: 2px 8px; border-radius: 4px; color: #888; }
+  .tags-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .tag-badge { background: #1a2a3a; color: #58a6ff; font-size: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid #1a3a5a; }
   .card-body .actions { display: flex; gap: 8px; margin-top: 8px; }
   .card-body .actions button {
     flex: 1; padding: 6px 0; border-radius: 6px; border: none;
@@ -173,7 +175,8 @@ function render() {
   const filtered = charts.filter(c =>
     c.title.toLowerCase().includes(q) ||
     (c.description && c.description.toLowerCase().includes(q)) ||
-    c.filename.toLowerCase().includes(q)
+    c.filename.toLowerCase().includes(q) ||
+    (c.tags && c.tags.some(t => t.toLowerCase().includes(q)))
   );
 
   const now = Date.now();
@@ -206,6 +209,7 @@ function render() {
             <span>${escHtml(c.date || dateStr)}</span>
             <span class="tag">${sizeStr}</span>
           </div>
+          ${c.tags && c.tags.length ? `<div class="tags-row">${c.tags.map(t => `<span class="tag-badge">${escHtml(t)}</span>`).join('')}</div>` : ''}
           <div class="actions">
             <button class="btn-view" onclick="openModal('${chartPath}', '${escHtml(c.title)}')">预览</button>
             <button class="btn-open" onclick="window.open('${chartPath}', '_blank')">新标签页</button>

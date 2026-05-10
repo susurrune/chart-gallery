@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="编程语言时间线 · 1957→2026">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="从 Fortran 到 Zig，68 年间编程语言的诞生、兴衰与范式演变。气泡大小 = 社区活跃度，Y轴 = TIOBE 指数排名">
+<meta name="chart-tags" content="编程语言,历史,时间线,气泡图,范式">
+<title>编程语言时间线 · 1957→2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+  .header { margin-bottom: 24px; }
+  .header h1 { font-size: 26px; font-weight: 700; color: #f0f6fc; }
+  .header .subtitle { color: #8b949e; font-size: 13px; margin-top: 4px; }
+  .header .subtitle span { color: #58a6ff; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card { background: linear-gradient(135deg,#1c1e26,#1a1c25); border-radius: 12px; padding: 18px 20px; border: 1px solid #2d2f3a; }
+  .stat-card .label { font-size: 11px; color: #8b949e; }
+  .stat-card .value { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+  .stat-card .sub { font-size: 11px; color: #555; }
+
+  .timeline-wrap { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+  .timeline-wrap h2 { font-size: 15px; color: #f0f6fc; }
+  .timeline-wrap .chart-desc { font-size: 12px; color: #8b949e; margin: 2px 0 4px; }
+  .chart-wrap { position: relative; height: 520px; }
+
+  .insight { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border-left: 3px solid #58a6ff; }
+  .insight h3 { font-size: 13px; color: #58a6ff; margin-bottom: 4px; }
+  .insight p { font-size: 12px; color: #8b949e; line-height: 1.7; }
+
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 1px solid #2d2f3a; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #8b949e; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  @media (max-width: 768px) { .stats { grid-template-columns: repeat(2,1fr); } .chart-wrap { height: 400px; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🗺️ 编程语言时间线 · 1957 → 2026</h1>
+    <div class="subtitle">气泡大小 = 社区活跃度（GitHub 星标+包下载量） ｜ Y 轴 = TIOBE 排名（1=最高） ｜ 颜色 = 范式家族</div>
+  </div>
+  <div class="stats">
+    <div class="stat-card"><div class="label">跨度</div><div class="value" style="color:#58a6ff">69 年</div><div class="sub">Fortran→Zig</div></div>
+    <div class="stat-card"><div class="label">现存语言数</div><div class="value" style="color:#3fb950">700+</div><div class="sub">主要活跃 ~20 种</div></div>
+    <div class="stat-card"><div class="label">最年长仍活跃</div><div class="value" style="color:#d97757">C (1972)</div><div class="sub">53 岁仍 Top 2</div></div>
+    <div class="stat-card"><div class="label">最年轻新星</div><div class="value" style="color:#a371f7">Zig (2015)</div><div class="sub">10 岁 快速增长</div></div>
+  </div>
+
+  <div class="timeline-wrap">
+    <h2>🗺️ 编程语言时间线气泡图</h2>
+    <div class="chart-desc">X 轴 = 诞生年份 ｜ Y 轴 = TIOBE 排名（越高越靠前） ｜ 气泡大小 = 社区活跃度 ｜ 悬停查看详情</div>
+    <div class="chart-wrap"><canvas id="bubbleChart"></canvas></div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#f85149"></span>系统级（C/C++/Rust/Zig）</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#f0db4f"></span>脚本/动态（JS/Python/PHP/Ruby）</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#3178c6"></span>静态类型 OOP（Java/C#/Kotlin/TS）</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#58a6ff"></span>函数式（Lisp/Clojure/Haskell/Elixir）</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#3fb950"></span>新生代（Go/Rust/Zig/Swift）</div>
+    </div>
+  </div>
+
+  <div class="insight">
+    <h3>💡 历史视角</h3>
+    <p>编程语言演进呈现明显的"代际跳跃"：1970s（C/SQL）奠定了系统和数据基础，1990s（Java/JS/Python/PHP）带来了互联网和动态语言的爆发，2010s（Go/Rust/Kotlin/TS）则是对前代语言缺陷的系统性修复。有趣的是，C（1972）至今仍是 Top 2——好的设计经得起时间考验。JS 在 10 天内诞生（1995）却成为使用最广的语言，说明"时机 > 完美"。Rust（2010）连续 7 年"最受喜爱"——这代人正在书写下一个 50 年的基础语言。</p>
+  </div>
+</div>
+<script>
+const CTX = () => document.getElementById('bubbleChart').getContext('2d');
+
+const LANG_DATA = [
+  // [name, year, rank, size, paradigmColor, description]
+  { name:'Fortran', year:1957, rank:15, size:8, color:'#f8514988', border:'#f85149', desc:'第一个高级语言' },
+  { name:'Lisp', year:1958, rank:35, size:5, color:'#58a6ff88', border:'#58a6ff', desc:'函数式编程鼻祖' },
+  { name:'COBOL', year:1959, rank:30, size:3, color:'#f8514988', border:'#f85149', desc:'商业计算语言' },
+  { name:'C', year:1972, rank:2, size:35, color:'#f8514988', border:'#f85149', desc:'系统编程基石' },
+  { name:'SQL', year:1974, rank:8, size:25, color:'#e38c0088', border:'#e38c00', desc:'数据库查询标准' },
+  { name:'C++', year:1985, rank:3, size:30, color:'#f8514988', border:'#f85149', desc:'带类的 C' },
+  { name:'Python', year:1991, rank:1, size:55, color:'#f0db4f88', border:'#f0db4f', desc:'AI/数据科学首选' },
+  { name:'Java', year:1995, rank:4, size:40, color:'#3178c688', border:'#3178c6', desc:'企业级王者' },
+  { name:'JavaScript', year:1995, rank:6, size:60, color:'#f0db4f88', border:'#f0db4f', desc:'Web 统治语言' },
+  { name:'PHP', year:1995, rank:10, size:18, color:'#f0db4f88', border:'#f0db4f', desc:'Web 脚本主力' },
+  { name:'Ruby', year:1995, rank:18, size:12, color:'#f0db4f88', border:'#f0db4f', desc:'开发者幸福导向' },
+  { name:'C#', year:2000, rank:5, size:28, color:'#3178c688', border:'#3178c6', desc:'微软生态核心' },
+  { name:'Swift', year:2014, rank:12, size:15, color:'#3fb95088', border:'#3fb950', desc:'Apple 现代语言' },
+  { name:'Go', year:2009, rank:7, size:22, color:'#3fb95088', border:'#3fb950', desc:'云原生标配' },
+  { name:'Rust', year:2010, rank:14, size:20, color:'#3fb95088', border:'#3fb950', desc:'安全系统编程' },
+  { name:'Kotlin', year:2011, rank:13, size:16, color:'#3178c688', border:'#3178c6', desc:'Android 官方' },
+  { name:'TypeScript', year:2012, rank:9, size:45, color:'#3178c688', border:'#3178c6', desc:'JS 超集 66% YoY' },
+  { name:'Dart', year:2011, rank:17, size:10, color:'#3178c688', border:'#3178c6', desc:'Flutter 语言' },
+  { name:'Zig', year:2015, rank:25, size:8, color:'#3fb95088', border:'#3fb950', desc:'C 的现代替代' },
+  { name:'Haskell', year:1990, rank:40, size:4, color:'#58a6ff88', border:'#58a6ff', desc:'纯函数式代表' },
+  { name:'Clojure', year:2007, rank:45, size:3, color:'#58a6ff88', border:'#58a6ff', desc:'Lisp on JVM' },
+  { name:'Elixir', year:2011, rank:38, size:6, color:'#58a6ff88', border:'#58a6ff', desc:'Erlang VM 上的 Ruby' },
+  { name:'R', year:1993, rank:11, size:14, color:'#f0db4f88', border:'#f0db4f', desc:'统计计算语言' },
+  { name:'MATLAB', year:1984, rank:16, size:10, color:'#e38c0088', border:'#e38c00', desc:'科学计算' },
+  { name:'Lua', year:1993, rank:22, size:8, color:'#f0db4f88', border:'#f0db4f', desc:'嵌入式脚本' },
+  { name:'Perl', year:1987, rank:20, size:7, color:'#f0db4f88', border:'#f0db4f', desc:'文本处理先驱' },
+];
+
+new Chart(CTX(), {
+  type: 'bubble',
+  data: {
+    datasets: LANG_DATA.map(d => ({
+      label: d.name,
+      data: [{ x: d.year, y: d.rank, r: d.size }],
+      backgroundColor: d.color,
+      borderColor: d.border,
+      borderWidth: 2,
+    }))
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 12, cornerRadius: 8,
+        callbacks: {
+          title: items => items[0].dataset.label,
+          label: ctx => {
+            const d = ctx.raw;
+            return `诞生: ${d.x}  |  TIOBE 排名: #${d.y}  |  社区分: ${d.r}`;
+          },
+          afterLabel: ctx => {
+            const d = LANG_DATA.find(l => l.name === ctx.dataset.label);
+            return d ? d.desc : '';
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        type: 'linear', min: 1955, max: 2026,
+        grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e', stepSize: 10, callback: v => v },
+        title: { display: true, color: '#8b949e', text: '诞生年份', font: { size: 12 } }
+      },
+      y: {
+        reverse: true, min: 0, max: 50,
+        grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e', stepSize: 5 },
+        title: { display: true, color: '#8b949e', text: 'TIOBE 排名 (1=最高)', font: { size: 12 } }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

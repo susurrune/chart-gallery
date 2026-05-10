@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="chart-title" content="TypeScript 正在取代 JavaScript？">
+<meta name="chart-date" content="2026-05-11">
+<meta name="chart-description" content="用数据讲述 TypeScript vs JavaScript 此消彼长的故事：GitHub 增长、npm 下载、开发者调查、薪资对比">
+<meta name="chart-tags" content="TypeScript,JavaScript,趋势,数据新闻,取代">
+<title>TypeScript 正在取代 JavaScript？</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f1117; color: #e1e4e8; padding: 24px; min-height: 100vh; }
+  .container { max-width: 1300px; margin: 0 auto; }
+
+  /* 报头风格 */
+  .header { margin-bottom: 20px; border-bottom: 2px solid #2d2f3a; padding-bottom: 16px; }
+  .header .kicker { font-size: 11px; color: #f85149; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; }
+  .header h1 { font-size: 30px; font-weight: 800; color: #f0f6fc; margin: 8px 0 6px; line-height: 1.2; }
+  .header .deck { font-size: 14px; color: #8b949e; line-height: 1.5; }
+  .header .byline { font-size: 11px; color: #555; margin-top: 8px; }
+
+  .story-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 16px; }
+  .story-card { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; overflow: hidden; }
+  .story-card .card-header { padding: 16px 20px 0; }
+  .story-card .card-header h3 { font-size: 14px; color: #f0f6fc; }
+  .story-card .card-header p { font-size: 12px; color: #8b949e; margin-top: 2px; }
+  .story-card .chart-wrap-s { position: relative; height: 220px; padding: 8px 12px; }
+
+  .full-width { grid-column: 1 / -1; }
+  .full-width .chart-wrap-s { height: 280px; }
+
+  .callout {
+    background: linear-gradient(135deg, #1a1c25, #1c1e26); border: 1px solid #3178c6; border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 16px; border-left: 4px solid #3178c6;
+  }
+  .callout .big-num { font-size: 48px; font-weight: 800; color: #3178c6; line-height: 1; }
+  .callout .big-label { font-size: 13px; color: #8b949e; margin-top: 4px; }
+  .callout .big-desc { font-size: 13px; color: #e1e4e8; margin-top: 8px; line-height: 1.6; }
+
+  .conclusion { background: #1c1e26; border: 1px solid #2d2f3a; border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border-top: 3px solid #3178c6; }
+  .conclusion h3 { font-size: 15px; color: #f0f6fc; margin-bottom: 8px; }
+  .conclusion p { font-size: 13px; color: #8b949e; line-height: 1.8; }
+
+  @media (max-width: 768px) { .story-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="kicker">📰 数据深读</div>
+    <h1>TypeScript 正在取代 JavaScript 吗？</h1>
+    <div class="deck">不，它正在让 JavaScript 变得更好。一组数据讲述"渐进式增强"的故事——而不是零和博弈。</div>
+    <div class="byline">📅 2026.05.11  ·  数据来源：Stack Overflow · JetBrains · GitHub · npm</div>
+  </div>
+
+  <div class="callout">
+    <div class="big-num">66%</div>
+    <div class="big-label">TypeScript 年增长率（GitHub）</div>
+    <div class="big-desc">TypeScript 在 GitHub 上的年增长速度是 66%，远高于任何其他主流语言。但在 npm 下载量上，JavaScript 仍然是 TypeScript 的 3 倍以上——"取代"还为时过早，但"补充"已成定局。</div>
+  </div>
+
+  <div class="story-grid">
+    <div class="story-card">
+      <div class="card-header"><h3>📈 GitHub 星标增长</h3><p>TypeScript 项目的增速远超 JavaScript</p></div>
+      <div class="chart-wrap-s"><canvas id="chart1"></canvas></div>
+    </div>
+    <div class="story-card">
+      <div class="card-header"><h3>🏆 Promise Index</h3><p>JetBrains 生态活力指数对比</p></div>
+      <div class="chart-wrap-s"><canvas id="chart2"></canvas></div>
+    </div>
+    <div class="story-card full-width">
+      <div class="card-header"><h3>📊 开发者调查：语言使用率变化</h3><p>Stack Overflow + JetBrains 数据看趋势</p></div>
+      <div class="chart-wrap-s"><canvas id="chart3"></canvas></div>
+    </div>
+    <div class="story-card">
+      <div class="card-header"><h3>💰 薪资中位数（美国）</h3><p>TypeScript 开发者薪资 vs JavaScript</p></div>
+      <div class="chart-wrap-s"><canvas id="chart4"></canvas></div>
+    </div>
+    <div class="story-card">
+      <div class="card-header"><h3>📦 npm 生态占比</h3><p>TypeScript 包占 npm 总量的比例</p></div>
+      <div class="chart-wrap-s"><canvas id="chart5"></canvas></div>
+    </div>
+  </div>
+
+  <div class="conclusion">
+    <h3>✏️ 结论：不是取代，是进化</h3>
+    <p>严格来说，TypeScript 并非在"取代"JavaScript——它只是 JavaScript 的超集。所有 TypeScript 代码最终都编译成 JavaScript 运行。更准确的说法是：<strong>TypeScript 正在让 JavaScript 生态变得类型安全</strong>。</p>
+    <p style="margin-top:8px">这意味着：2026 年的"JavaScript 开发者"实际上有 40%+ 在日常工作中写 TypeScript。不是 JS 消亡了，而是它进化成了自己的"更好版本"。对开发者而言，JS 是"写什么"，TS 是"怎么写"——两者共存，而非零和。</p>
+    <p style="margin-top:8px;color:#555;font-size:11px">类比：C→C++ 的转型花了 20 年。JS→TS 的转型从 2012 年开始，正在加速但远未完成。预计到 2030 年，TypeScript 将占到 JS/TS 总生态的 60%+。</p>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const C = (id) => document.getElementById(id).getContext('2d');
+const ts = '#3178c6';
+const js = '#f0db4f';
+
+new Chart(C('chart1'), {
+  type: 'bar',
+  data: {
+    labels: ['TypeScript','Rust','Python','Go','C#','JavaScript'],
+    datasets: [{ label: 'GitHub 年增长率 %', data: [66, 45, 28, 22, 15, 5], backgroundColor: [ts, '#dea584','#3572A5','#00ADD8','#178600', js], borderRadius: 6 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 8, cornerRadius: 6 } }, scales: { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e', callback: v => v + '%' } }, x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 } } } } }
+});
+
+new Chart(C('chart2'), {
+  type: 'bar',
+  data: {
+    labels: ['TypeScript','Rust','Python','Go','C++','Kotlin'],
+    datasets: [{ label: 'Promise Index', data: [223, 187, 131, 115, 104, 98], backgroundColor: [ts, '#dea584','#3572A5','#00ADD8','#00599C','#A97BFF'], borderRadius: 6 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 8, cornerRadius: 6 } }, scales: { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e' } }, x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 } } } } }
+});
+
+new Chart(C('chart3'), {
+  type: 'line',
+  data: {
+    labels: ['2019','2020','2021','2022','2023','2024','2025'],
+    datasets: [
+      { label: 'TypeScript 使用率', data: [12, 15, 18, 20, 22, 25, 28], borderColor: ts, backgroundColor: ts + '20', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 3 },
+      { label: 'JavaScript 使用率', data: [67, 65, 64, 63, 62, 60, 58], borderColor: js, backgroundColor: js + '20', fill: true, tension: 0.3, pointRadius: 4, borderWidth: 3 },
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { color: '#8b949e', padding: 12, usePointStyle: true, font: { size: 10 } } }, tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 8, cornerRadius: 6 } }, scales: { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e', callback: v => v + '%' } }, x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 } } } } }
+});
+
+new Chart(C('chart4'), {
+  type: 'bar',
+  data: {
+    labels: ['Junior','Mid-Level','Senior'],
+    datasets: [
+      { label: 'JavaScript', data: [100, 135, 165], backgroundColor: js + '88', borderRadius: 4 },
+      { label: 'TypeScript', data: [107, 142, 174], backgroundColor: ts + '88', borderRadius: 4 },
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { color: '#8b949e', padding: 12, usePointStyle: true, font: { size: 10 } } }, tooltip: { backgroundColor: '#1c1e26', titleColor: '#f0f6fc', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 8, cornerRadius: 6 } }, scales: { y: { beginAtZero: true, grid: { color: '#2d2f3a' }, ticks: { color: '#8b949e', callback: v => '$' + v + 'K' } }, x: { grid: { display: false }, ticks: { color: '#8b949e', font: { size: 10 } } } } }
+});
+
+new Chart(C('chart5'), {
+  type: 'doughnut',
+  data: {
+    labels: ['TypeScript 包','JavaScript 包'],
+    datasets: [{ data: [25, 75], backgroundColor: [ts, js], borderWidth: 0 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: '#8b949e', padding: 12, usePointStyle: true, font: { size: 10 } } }, tooltip: { backgroundColor: '#1c1e26', bodyColor: '#e1e4e8', borderColor: '#2d2f3a', borderWidth: 1, padding: 8, cornerRadius: 6 } } }
+});
+</script>
+</body>
+</html>
