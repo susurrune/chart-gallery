@@ -467,7 +467,10 @@ function submitUploadGitHub() {
 
   var token = localStorage.getItem('github_token');
   if (!token) {
-    token = prompt('输入 GitHub Personal Access Token (需 public_repo 权限)\n可在 github.com/settings/tokens 生成');
+    token = prompt('粘贴 GitHub Token (需 Contents 读写权限)\n\n' +
+      '快速创建 → github.com/settings/tokens/new\n' +
+      '选 classic token，勾选 public_repo\n' +
+      '或 fine-grained: 选本仓库 + Contents: Read and Write');
     if (!token) return;
     localStorage.setItem('github_token', token);
   }
@@ -499,6 +502,10 @@ function submitUploadGitHub() {
     if (res.status === 401) {
       localStorage.removeItem('github_token');
       throw new Error('Token 无效，已清除，请重试');
+    }
+    if (res.status === 403) {
+      localStorage.removeItem('github_token');
+      throw new Error('Token 权限不足 — 需要 classic 的 public_repo 或 fine-grained 的 Contents 读写权限');
     }
     return res.status === 200 ? res.json() : null;
   }).then(function(existing) {
