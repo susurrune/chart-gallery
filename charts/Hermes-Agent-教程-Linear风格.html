@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta name="chart-category" content="ai">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hermes Agent 使用教程 — Linear Style</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;510;590&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-feature-settings: "cv01", "ss03"; }
+        
+        :root {
+            --bg-marketing: #08090a;
+            --bg-panel: #0f1011;
+            --bg-surface: #191a1b;
+            --bg-hover: #28282c;
+            --text-primary: #f7f8f8;
+            --text-secondary: #d0d6e0;
+            --text-tertiary: #8a8f98;
+            --text-quaternary: #62666d;
+            --brand-indigo: #5e6ad2;
+            --accent-violet: #7170ff;
+            --accent-hover: #828fff;
+            --border-standard: rgba(255,255,255,0.08);
+            --border-subtle: rgba(255,255,255,0.05);
+            --border-solid: #23252a;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-marketing);
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        /* Display */
+        h1 {
+            font-size: 48px;
+            font-weight: 510;
+            line-height: 1.00;
+            letter-spacing: -1.056px;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 16px;
+        }
+
+        h2 {
+            font-size: 32px;
+            font-weight: 400;
+            line-height: 1.13;
+            letter-spacing: -0.704px;
+            color: var(--text-primary);
+            margin-top: 80px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        h3 {
+            font-size: 20px;
+            font-weight: 590;
+            line-height: 1.33;
+            letter-spacing: -0.24px;
+            color: var(--text-primary);
+            margin-top: 32px;
+            margin-bottom: 12px;
+        }
+
+        h4 {
+            font-size: 16px;
+            font-weight: 510;
+            line-height: 1.50;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        p {
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.50;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+
+        .meta {
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-tertiary);
+            margin-bottom: 40px;
+        }
+
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-standard);
+            border-radius: 8px;
+            padding: 20px;
+            transition: background 0.2s;
+        }
+
+        .feature-card:hover {
+            background: rgba(255,255,255,0.04);
+        }
+
+        .feature-card p {
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.60;
+            color: var(--text-tertiary);
+            margin: 0;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-standard);
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+            font-size: 14px;
+            background: rgba(255,255,255,0.02);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        th {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border-standard);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 510;
+            color: var(--text-primary);
+        }
+
+        td {
+            border: 1px solid var(--border-standard);
+            padding: 10px 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            display: inline-block;
+            background: var(--brand-indigo);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 510;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin: 4px;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-ghost {
+            display: inline-block;
+            background: rgba(255,255,255,0.02);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 510;
+            border: 1px solid var(--border-solid);
+            cursor: pointer;
+            transition: background 0.2s;
+            margin: 4px;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.04);
+            color: var(--text-primary);
+        }
+
+        /* Lists */
+        ul {
+            margin-left: 20px;
+            margin-bottom: 16px;
+        }
+
+        li {
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.60;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-block;
+            padding: 0px 8px 0px 2px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 2px;
+            font-size: 10px;
+            font-weight: 510;
+            margin-left: 8px;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 60px;
+        }
+
+        /* Links */
+        a {
+            color: var(--accent-violet);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Navigation hint */
+        .nav-hint {
+            font-size: 13px;
+            color: var(--text-quaternary);
+            margin-bottom: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 40px 20px;
+            }
+            h1 {
+                font-size: 32px;
+                letter-spacing: -0.704px;
+            }
+            h2 {
+                font-size: 24px;
+                margin-top: 48px;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-marketing);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.12);
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Hermes Agent 使用教程</h1>
+    <p class="meta">版本 2.0.0 | 开源 AI 代理框架 by Nous Research</p>
+
+    <section class="section">
+        <h2 id="intro">简介</h2>
+        <p>Hermes Agent 是一个开源的 AI 代理框架，由 Nous Research 开发。它可以在终端、消息平台和 IDE 中运行，属于与 Claude Code (Anthropic)、Codex (OpenAI) 同类的自主编码和任务执行代理。</p>
+        <p>Hermes 支持任何 LLM 提供商（OpenRouter、Anthropic、OpenAI、DeepSeek、本地模型等 20+ 提供商），可在 Linux、macOS 和 WSL 上运行。</p>
+
+        <h3>核心优势</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>🧠 自我改进</h4>
+                <p>通过技能系统从经验中学习，保存可重用的流程到未来会话</p>
+            </div>
+            <div class="feature-card">
+                <h4>💾 持久记忆</h4>
+                <p>跨会话记忆用户信息、偏好、环境细节和学到的经验</p>
+            </div>
+            <div class="feature-card">
+                <h4>🌐 多平台网关</h4>
+                <p>同一代理运行在 Telegram、Discord、Slack、WhatsApp 等 10+ 平台</p>
+            </div>
+            <div class="feature-card">
+                <h4>🔧 提供商无关</h4>
+                <p>在工作流中随时切换模型和提供商，自动轮换多个 API 密钥</p>
+            </div>
+            <div class="feature-card">
+                <h4>👤 多配置文件</h4>
+                <p>运行多个独立的 Hermes 实例，每个都有独立的配置、会话和技能</p>
+            </div>
+            <div class="feature-card">
+                <h4>🔌 可扩展</h4>
+                <p>支持插件、MCP 服务器、自定义工具、Webhook 触发器和完整 Python 生态</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 id="quickstart">快速开始</h2>
+        
+        <h3>安装</h3>
+        <pre><code># Linux/macOS
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1 | iex</code></pre>
+
+        <h3>基本使用</h3>
+        <pre><code># 交互式聊天（默认）
+hermes
+
+# 单次查询
+hermes chat -q "法国的首都是哪里？"
+
+# 设置向导
+hermes setup
+
+# 切换模型/提供商
+hermes model
+
+# 健康检查
+hermes doctor</code></pre>
+
+        <h3>首次配置</h3>
+        <p>运行 <code>hermes setup</code> 会引导你完成：</p>
+        <ul>
+            <li>选择模型提供商（推荐 OpenRouter 作为起点）</li>
+            <li>配置 API 密钥</li>
+            <li>设置默认模型</li>
+            <li>选择启用的工具集</li>
+            <li>配置消息平台（可选）</li>
+        </ul>
+    </section>
+
+    <section class="section">
+        <h2 id="cli">CLI 命令参考</h2>
+
+        <h3>全局标志</h3>
+        <pre><code>hermes [flags] [command]
+
+  --version, -V            显示版本
+  --resume, -r SESSION     恢复指定 ID 或标题的会话
+  --continue, -c [NAME]    按名称恢复，或恢复最近的会话
+  --worktree, -w           隔离的 git worktree 模式（并行代理）
+  --skills, -s SKILL       预加载技能（逗号分隔或重复）
+  --profile, -p NAME       使用命名配置文件
+  --yolo                   跳过危险命令确认</code></pre>
+
+        <h3>聊天命令</h3>
+        <pre><code>hermes chat [flags]
+  -q, --query TEXT          单次查询，非交互式
+  -m, --model MODEL        模型（如 anthropic/claude-sonnet-4）
+  -t, --toolsets LIST      逗号分隔的工具集
+  --provider PROVIDER      强制使用提供商
+  -v, --verbose            详细输出
+  -Q, --quiet              抑制横幅、旋转器和工具预览</code></pre>
+
+        <h3>配置命令</h3>
+        <pre><code>hermes setup [section]      交互式向导
+hermes model                交互式模型/提供商选择器
+hermes config               查看当前配置
+hermes config edit         在 $EDITOR 中打开 config.yaml
+hermes config set KEY VAL  设置配置值
+hermes config check        检查缺失/过时的配置
+hermes doctor [--fix]      检查依赖和配置</code></pre>
+    </section>
+
+    <section class="section">
+        <h2 id="slash">斜杠命令（会话内）</h2>
+        <p>在交互式聊天会话中键入这些命令：</p>
+
+        <h3>会话控制</h3>
+        <table>
+            <tr>
+                <th>命令</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td><code>/new</code> 或 <code>/reset</code></td>
+                <td>新会话</td>
+            </tr>
+            <tr>
+                <td><code>/clear</code></td>
+                <td>清屏 + 新会话（CLI）</td>
+            </tr>
+            <tr>
+                <td><code>/retry</code></td>
+                <td>重新发送最后一条消息</td>
+            </tr>
+            <tr>
+                <td><code>/undo</code></td>
+                <td>删除最后一轮对话</td>
+            </tr>
+            <tr>
+                <td><code>/title [name]</code></td>
+                <td>命名会话</td>
+            </tr>
+        </table>
+
+        <h3>配置命令</h3>
+        <table>
+            <tr>
+                <th>命令</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td><code>/config</code></td>
+                <td>显示配置（CLI）</td>
+            </tr>
+            <tr>
+                <td><code>/model [name]</code></td>
+                <td>显示或更改模型</td>
+            </tr>
+            <tr>
+                <td><code>/personality [name]</code></td>
+                <td>设置个性</td>
+            </tr>
+            <tr>
+                <td><code>/voice [on|off|tts]</code></td>
+                <td>语音模式</td>
+            </tr>
+            <tr>
+                <td><code>/yolo</code></td>
+                <td>切换审批绕过</td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="section">
+        <h2 id="config">配置说明</h2>
+
+        <h3>关键路径（Windows）</h3>
+        <pre><code>C:\Users\&lt;用户名&gt;\.hermes\config.yaml       主配置文件
+C:\Users\&lt;用户名&gt;\.hermes\.env              API 密钥和秘密
+C:\Users\&lt;用户名&gt;\.hermes\persona.md        代理个性（可选）
+%USERPROFILE%\.hermes\skills\             已安装的技能
+%USERPROFILE%\.hermes\sessions\           会话记录
+%USERPROFILE%\.hermes\logs\               网关和错误日志</code></pre>
+
+        <h3>配置节</h3>
+        <table>
+            <tr>
+                <th>节</th>
+                <th>关键选项</th>
+            </tr>
+            <tr>
+                <td><code>model</code></td>
+                <td><code>default</code>, <code>provider</code>, <code>base_url</code>, <code>api_key</code></td>
+            </tr>
+            <tr>
+                <td><code>agent</code></td>
+                <td><code>max_turns</code> (90), <code>tool_use_enforcement</code></td>
+            </tr>
+            <tr>
+                <td><code>terminal</code></td>
+                <td><code>backend</code>, <code>cwd</code>, <code>timeout</code> (180)</td>
+            </tr>
+            <tr>
+                <td><code>memory</code></td>
+                <td><code>memory_enabled</code>, <code>user_profile_enabled</code>, <code>provider</code></td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="section">
+        <h2 id="tools">工具集</h2>
+        <p>通过 <code>hermes tools</code> 启用/禁用。</p>
+
+        <table>
+            <tr>
+                <th>工具集</th>
+                <th>功能</th>
+            </tr>
+            <tr>
+                <td><code>web</code></td>
+                <td>网页搜索和内容提取</td>
+            </tr>
+            <tr>
+                <td><code>terminal</code></td>
+                <td>Shell 命令和进程管理</td>
+            </tr>
+            <tr>
+                <td><code>file</code></td>
+                <td>文件读取/写入/搜索</td>
+            </tr>
+            <tr>
+                <td><code>vision</code></td>
+                <td>图像分析</td>
+            </tr>
+            <tr>
+                <td><code>memory</code></td>
+                <td>跨会话持久记忆</td>
+            </tr>
+            <tr>
+                <td><code>skills</code></td>
+                <td>技能浏览和管理</td>
+            </tr>
+            <tr>
+                <td><code>cronjob</code></td>
+                <td>定时任务管理</td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="section">
+        <h2 id="providers">模型提供商</h2>
+        <p>支持 20+ 提供商：</p>
+
+        <table>
+            <tr>
+                <th>提供商</th>
+                <th>环境变量</th>
+            </tr>
+            <tr>
+                <td>OpenRouter</td>
+                <td><code>OPENROUTER_API_KEY</code></td>
+            </tr>
+            <tr>
+                <td>Anthropic</td>
+                <td><code>ANTHROPIC_API_KEY</code></td>
+            </tr>
+            <tr>
+                <td>DeepSeek</td>
+                <td><code>DEEPSEEK_API_KEY</code></td>
+            </tr>
+            <tr>
+                <td>智谱 GLM</td>
+                <td><code>GLM_API_KEY</code></td>
+            </tr>
+            <tr>
+                <td>腾讯元宝</td>
+                <td><code>YUANBAO_API_KEY</code></td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="section">
+        <h2 id="skills">技能系统</h2>
+        <p>技能是 Hermes 的程序性记忆 — 可重用的特定任务类型流程。</p>
+
+        <h3>管理技能</h3>
+        <pre><code># 浏览可用技能
+hermes skills browse
+
+# 搜索技能
+hermes skills search "web design"
+
+# 安装技能
+hermes skills install creative/claude-design
+
+# 更新技能
+hermes skills update
+
+# 列出已安装技能
+hermes skills list</code></pre>
+
+        <h3>内置技能类别</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>🤖 自主 AI 代理</h4>
+                <p>Claude Code、Codex、OpenCode</p>
+            </div>
+            <div class="feature-card">
+                <h4>🎨 创意设计</h4>
+                <p>架构图、ASCII 艺术、漫画</p>
+            </div>
+            <div class="feature-card">
+                <h4>💻 软件开发</h4>
+                <p>调试、TDD、计划模式</p>
+            </div>
+            <div class="feature-card">
+                <h4>📊 数据科学</h4>
+                <p>Jupyter、数据分析、可视化</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 id="gateway">消息网关</h2>
+        <p>Hermes 网关让你在多个消息平台上运行同一个代理。</p>
+
+        <h3>支持的平台</h3>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <h4>Telegram</h4>
+                <p>最成熟的集成</p>
+            </div>
+            <div class="feature-card">
+                <h4>Discord</h4>
+                <p>支持机器人和服务</p>
+            </div>
+            <div class="feature-card">
+                <h4>Slack</h4>
+                <p>工作区集成</p>
+            </div>
+            <div class="feature-card">
+                <h4>微信</h4>
+                <p>WeChat 集成</p>
+            </div>
+        </div>
+
+        <h3>网关命令</h3>
+        <pre><code>hermes gateway run          前台启动网关
+hermes gateway install      安装为后台服务
+hermes gateway start/stop   控制服务
+hermes gateway status       检查状态
+hermes gateway setup        配置平台</code></pre>
+    </section>
+
+    <section class="section">
+        <h2 id="cron">定时任务（Cron）</h2>
+        <p>使用 <code>cronjob</code> 工具管理定时任务。</p>
+
+        <h3>调度格式</h3>
+        <table>
+            <tr>
+                <th>格式</th>
+                <th>说明</th>
+            </tr>
+            <tr>
+                <td><code>30m</code></td>
+                <td>每 30 分钟</td>
+            </tr>
+            <tr>
+                <td><code>every 2h</code></td>
+                <td>每 2 小时</td>
+            </tr>
+            <tr>
+                <td><code>0 9 * * *</code></td>
+                <td>每天 9:00</td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="section">
+        <h2 id="trouble">故障排除</h2>
+
+        <h3>常见问题</h3>
+        <ul>
+            <li><strong>工具不可用：</strong>运行 <code>hermes tools</code> 检查是否启用</li>
+            <li><strong>模型问题：</strong>运行 <code>hermes doctor</code> 检查配置</li>
+            <li><strong>更改未生效：</strong>退出并重新启动 Hermes</li>
+            <li><strong>Windows HTTP 400：</strong>确保 config.yaml 以 UTF-8 无 BOM 保存</li>
+        </ul>
+    </section>
+
+    <section class="section" style="margin-top: 80px; padding-top: 40px; border-top: 1px solid var(--border-subtle);">
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li>官方网站：<a href="https://hermes-agent.nousresearch.com/">https://hermes-agent.nousresearch.com/</a></li>
+            <li>GitHub：<a href="https://github.com/NousResearch/hermes-agent">https://github.com/NousResearch/hermes-agent</a></li>
+            <li>完整文档：<a href="https://hermes-agent.nousresearch.com/docs/">https://hermes-agent.nousresearch.com/docs/</a></li>
+        </ul>
+        <p style="margin-top: 20px; font-size: 14px; color: var(--text-tertiary);">
+            📅 本教程基于 Hermes Agent v2.0.0 编写<br>
+            🔄 定期运行 <code>hermes update</code> 和 <code>hermes skills update</code> 保持最新
+        </p>
+    </section>
+</body>
+</html>
