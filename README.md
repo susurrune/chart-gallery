@@ -30,6 +30,17 @@ Chart Gallery 是一个纯静态的图表展示站，支持自动扫描、元数
 - **自动构建** — 扫描目录，提取 meta 信息，生成首页
 - **在线上传** — 支持本地服务器上传与 GitHub API 远程上传
 
+### 性能与可访问性优化
+
+- **IntersectionObserver 懒加载** — 卡片 iframe 仅在进入视口前 200px 才加载，避免首屏拉取数 MB 图表资源
+- **骨架加载状态** — iframe 就位前显示 shimmer 占位，消除空白突变
+- **字体按需加载** — 仅引入实际用到的 Fraunces 700/800、JetBrains Mono 400/600，避免整族字体下载
+- **SEO 与可分享性** — Open Graph、Twitter Card、JSON-LD 结构化数据、canonical、自动生成 sitemap.xml 与 robots.txt
+- **PWA Manifest** — 支持添加到主屏，深色主题色匹配
+- **完整 a11y** — 语义化 `<header>`/`<main>`/`<article>`、aria-modal 焦点管理、skip-link、键盘快捷键（`/` 聚焦搜索、`T` 切主题、`Esc` 关闭弹窗）
+- **prefers-reduced-motion 适配** — 自动禁用非必要动画
+- **打印样式** — 提供 print 媒体查询，导出 PDF 友好
+
 ---
 
 ## 快速开始

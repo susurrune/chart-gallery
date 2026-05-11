@@ -111,8 +111,57 @@ for (const c of charts) {
 console.log('\n  分类：' + Object.entries(stats)
   .map(([k, v]) => `${CATEGORY_LABELS[k] || k} ${v}个`).join(' · '));
 
+const SITE_URL = 'https://susurrune.github.io/chart-gallery';
 const template = fs.readFileSync(path.join(SRC_DIR, 'index.html'), 'utf-8');
-fs.writeFileSync(path.join(DIST_DIR, 'index.html'), template.replace('__CHARTS_DATA__', JSON.stringify(charts)));
+
+// Structured data — improves rich-result eligibility
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Chart Gallery',
+  description: '数据可视化图表展示画廊 — AI / LLM / 开发者生态 / 开源趋势分析',
+  url: SITE_URL,
+  inLanguage: 'zh-CN',
+  hasPart: charts.slice(0, 50).map(c => ({
+    '@type': 'CreativeWork',
+    name: c.title,
+    description: c.description || c.title,
+    dateModified: c.mtime,
+    url: `${SITE_URL}/charts/${encodeURIComponent(c.filename)}`,
+  })),
+};
+
+const html = template
+  .replace('__CHARTS_DATA__', JSON.stringify(charts))
+  .replace('</head>', `<script type="application/ld+json">${JSON.stringify(structuredData)}</script>\n</head>`);
+fs.writeFileSync(path.join(DIST_DIR, 'index.html'), html);
+
+// sitemap.xml — index + each chart
+const today = new Date().toISOString().slice(0, 10);
+const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>${SITE_URL}/</loc><lastmod>${today}</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+${charts.map(c => `  <url><loc>${SITE_URL}/charts/${encodeURIComponent(c.filename)}</loc><lastmod>${c.mtime.slice(0,10)}</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>`).join('\n')}
+</urlset>`;
+fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemap);
+
+// robots.txt
+fs.writeFileSync(path.join(DIST_DIR, 'robots.txt'),
+  `User-agent: *\nAllow: /\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+
+// Web manifest (PWA-light)
+fs.writeFileSync(path.join(DIST_DIR, 'manifest.webmanifest'), JSON.stringify({
+  name: 'Chart Gallery',
+  short_name: 'Charts',
+  description: '数据可视化图表展示画廊',
+  start_url: '/chart-gallery/',
+  scope: '/chart-gallery/',
+  display: 'standalone',
+  background_color: '#0a0a0e',
+  theme_color: '#0a0a0e',
+  lang: 'zh-CN',
+  icons: [{ src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml' }],
+}, null, 2));
 
 // 复制静态资源
 for (const asset of ['favicon.svg']) {
@@ -122,3 +171,4 @@ for (const asset of ['favicon.svg']) {
 
 const totalSize = (charts.reduce((s, c) => s + c.size, 0) / 1024).toFixed(0);
 console.log(`\n✓ ${charts.length} 个图表 (来源: ./charts/), 共 ${totalSize} KB`);
+console.log(`✓ sitemap.xml · robots.txt · manifest.webmanifest 已生成`);
