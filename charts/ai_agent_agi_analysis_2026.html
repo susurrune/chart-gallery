@@ -1,0 +1,1035 @@
+<!--
+  Design Direction: Dark Cyber-Editorial × Terminal Aesthetic
+  - 主色：深空黑 #08080c / 暗蓝灰 #12121c
+  - 强调色：电光青 #00e5ff（数据/链接）、琥珀橙 #ff9100（AGI信号）、霓虹绿 #00ff88（进度）
+  - 字体：Fraunces 展示标题 + JetBrains Mono 数据/正文
+  - 装饰：扫描线纹理、终端光标、几何电路图腾、网格点阵
+  - 布局：编辑杂志式不对称 — 打破居中，左轨信息流，数据卡片错位
+  - 记忆点：中央"AGI 就绪度"雷达图 + 顶部实时计数器
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="chart-title" content="AI Agent 发展趋势与 AGI 进展深度分析">
+  <meta name="chart-date" content="2026-05-11">
+  <meta name="chart-description" content="全面分析 2026 年 AI Agent 技术趋势、主要大模型公司 AGI 进展、框架生态与未来预测">
+  <meta name="chart-tags" content="AGI,AI Agent,大模型,趋势分析,OpenAI,Anthropic,Google,DeepMind">
+  <meta name="chart-category" content="ai">
+  <title>AI Agent 趋势 & AGI 进展 · 2026 深度分析</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.0/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --void: #08080c;
+      --abyss: #0e0e16;
+      --surface: #141420;
+      --surface-raised: #1a1a2e;
+      --border: #1e1e34;
+      --ink: #e4e4f0;
+      --ink-dim: #8888a0;
+      --ink-faint: #555570;
+      --cyan: #00e5ff;
+      --cyan-dim: #006880;
+      --amber: #ff9100;
+      --amber-dim: #804800;
+      --green: #00ff88;
+      --green-dim: #006638;
+      --red: #ff3355;
+      --purple: #b388ff;
+      --font-display: 'Fraunces', 'Source Han Serif CN', 'Noto Serif CJK SC', Georgia, serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--void);
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+    }
+
+    /* Subtle scanline overlay on body */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.015) 2px, rgba(0,0,0,.015) 4px);
+      pointer-events: none; z-index: 9999;
+    }
+
+    /* ---- LAYOUT ---- */
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 4vw, 48px);
+    }
+
+    /* ---- HERO ---- */
+    .hero {
+      padding: clamp(48px, 8vw, 96px) 0 clamp(32px, 5vw, 64px);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -20px;
+      width: 4px; height: 60%;
+      background: var(--cyan);
+      box-shadow: 0 0 20px var(--cyan), 0 0 60px var(--cyan-dim);
+    }
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .hero-eyebrow::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--cyan-dim), transparent);
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5.5vw, 4.8rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      max-width: 18ch;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--cyan);
+      text-shadow: 0 0 40px rgba(0,229,255,.35);
+    }
+    .hero .subtitle {
+      margin-top: 20px;
+      font-size: 15px;
+      color: var(--ink-dim);
+      max-width: 48ch;
+      line-height: 1.8;
+    }
+
+    /* Live stats row */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px;
+      margin-top: 48px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .stat-cell {
+      background: var(--surface);
+      padding: 20px 24px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .stat-cell .stat-value {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.6rem);
+      font-weight: 900;
+      line-height: 1;
+    }
+    .stat-cell .stat-value.cyan { color: var(--cyan); }
+    .stat-cell .stat-value.amber { color: var(--amber); }
+    .stat-cell .stat-value.green { color: var(--green); }
+    .stat-cell .stat-value.purple { color: var(--purple); }
+    .stat-cell .stat-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--ink-faint);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ---- SECTION ---- */
+    .section {
+      padding: clamp(40px, 6vw, 72px) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-header {
+      display: flex; align-items: baseline; gap: 20px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+    .section-num {
+      font-family: var(--font-display);
+      font-size: 64px;
+      font-weight: 900;
+      color: var(--border);
+      line-height: 1;
+      margin-right: -8px;
+    }
+    .section h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 2.8vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .section h2 span { color: var(--cyan); }
+    .section-intro {
+      color: var(--ink-dim);
+      max-width: 52ch;
+      margin-bottom: 36px;
+      font-size: 14px;
+    }
+
+    /* ---- CHARTS ---- */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .chart-grid.full { grid-template-columns: 1fr; }
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px;
+      position: relative;
+      transition: border-color .3s;
+    }
+    .chart-card:hover { border-color: #2a2a48; }
+    .chart-card h3 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+    .chart-card .card-sub {
+      font-size: 11px;
+      color: var(--ink-faint);
+      margin-bottom: 20px;
+      letter-spacing: 0.04em;
+    }
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .chart-wrap canvas { width: 100% !important; }
+
+    /* ---- COMPANY CARDS ---- */
+    .company-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .co-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .25s, border-color .25s;
+    }
+    .co-card:hover {
+      transform: translateY(-2px);
+      border-color: #2a2a48;
+    }
+    .co-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .co-card.openai::before { background: var(--green); box-shadow: 0 0 12px rgba(0,255,136,.3); }
+    .co-card.anthropic::before { background: var(--purple); box-shadow: 0 0 12px rgba(179,136,255,.3); }
+    .co-card.deepmind::before { background: var(--cyan); box-shadow: 0 0 12px rgba(0,229,255,.3); }
+    .co-card.meta::before { background: #448aff; box-shadow: 0 0 12px rgba(68,138,255,.3); }
+    .co-card.xai::before { background: var(--amber); box-shadow: 0 0 12px rgba(255,145,0,.3); }
+    .co-card.microsoft::before { background: #00bcd4; }
+    .co-card .co-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .co-card .co-name {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .co-card .co-score {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .co-card .co-score.high { color: var(--green); }
+    .co-card .co-score.mid { color: var(--amber); }
+    .co-card .co-score.low { color: var(--red); }
+    .co-card .co-bar-wrap {
+      height: 4px; background: var(--border); margin: 8px 0 16px;
+    }
+    .co-card .co-bar-fill {
+      height: 100%; transition: width 1s cubic-bezier(.16,1,.3,1);
+    }
+    .co-card.openai .co-bar-fill { background: var(--green); }
+    .co-card.anthropic .co-bar-fill { background: var(--purple); }
+    .co-card.deepmind .co-bar-fill { background: var(--cyan); }
+    .co-card.meta .co-bar-fill { background: #448aff; }
+    .co-card.xai .co-bar-fill { background: var(--amber); }
+    .co-card.microsoft .co-bar-fill { background: #00bcd4; }
+    .co-card .co-detail {
+      font-size: 12px; color: var(--ink-dim); line-height: 1.7;
+    }
+    .co-card .co-detail strong { color: var(--ink); }
+    .co-card .co-tags {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
+    }
+    .co-card .co-tag {
+      font-size: 10px;
+      padding: 3px 8px;
+      background: var(--abyss);
+      border: 1px solid var(--border);
+      color: var(--ink-dim);
+      letter-spacing: 0.04em;
+    }
+
+    /* ---- TIMELINE ---- */
+    .timeline {
+      position: relative;
+      padding-left: 28px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px; top: 8px; bottom: 8px;
+      width: 1px;
+      background: linear-gradient(180deg, var(--cyan), var(--purple), var(--amber));
+    }
+    .tl-item {
+      position: relative;
+      margin-bottom: 32px;
+      padding-left: 24px;
+    }
+    .tl-item::before {
+      content: '';
+      position: absolute;
+      left: -24px; top: 6px;
+      width: 9px; height: 9px;
+      background: var(--surface);
+      border: 2px solid var(--cyan);
+      border-radius: 50%;
+    }
+    .tl-item:nth-child(even)::before { border-color: var(--purple); }
+    .tl-item:nth-child(3n)::before { border-color: var(--amber); }
+    .tl-date {
+      font-size: 11px; color: var(--cyan);
+      letter-spacing: 0.08em; margin-bottom: 4px;
+    }
+    .tl-item h4 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .tl-item p {
+      font-size: 12px; color: var(--ink-dim); max-width: 52ch;
+    }
+
+    /* ---- PREDICTIONS ---- */
+    .predictions {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .pred-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px;
+      position: relative;
+    }
+    .pred-card .pred-icon {
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      background: var(--abyss);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .pred-card h4 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .pred-card p {
+      font-size: 12px; color: var(--ink-dim); line-height: 1.7;
+    }
+    .pred-card .confidence {
+      margin-top: 16px;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .conf-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .conf-dot.high { background: var(--green); box-shadow: 0 0 8px var(--green); }
+    .conf-dot.mid { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+    .conf-dot.low { background: var(--red); }
+
+    /* ---- FOOTER ---- */
+    .site-footer {
+      padding: 48px 0;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 20px;
+      color: var(--ink-faint);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+    }
+    .site-footer a { color: var(--cyan); text-decoration: none; }
+    .site-footer a:hover { text-decoration: underline; }
+
+    /* ---- ANIMATIONS ---- */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    .anim-rise { animation: rise .7s cubic-bezier(.16,1,.3,1) both; }
+    .anim-rise:nth-child(2) { animation-delay: .1s; }
+    .anim-rise:nth-child(3) { animation-delay: .2s; }
+    .anim-rise:nth-child(4) { animation-delay: .3s; }
+
+    .reveal {
+      opacity: 0; transform: translateY(20px);
+      transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 10px; height: 20px;
+      background: var(--cyan);
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+      margin-left: 4px;
+    }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 768px) {
+      .chart-grid { grid-template-columns: 1fr; }
+      .company-grid { grid-template-columns: 1fr; }
+      .predictions { grid-template-columns: 1fr; }
+      .stats-strip { grid-template-columns: repeat(2, 1fr); }
+      .hero h1 { font-size: clamp(1.8rem, 7vw, 2.8rem); }
+      .section-num { font-size: 40px; }
+      .site-footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<main class="page">
+
+  <!-- ========== HERO ========== -->
+  <header class="hero">
+    <div class="hero-eyebrow">2026 深度分析报告</div>
+    <h1>AI Agent 崛起<br>通往 <em>AGI</em> 的最后一公里<span class="cursor-blink"></span></h1>
+    <p class="subtitle">
+      从工具调用到自主决策，AI Agent 正在重塑人机交互的边界。本报告追踪 OpenAI、Anthropic、Google DeepMind、Meta、xAI 等主要玩家的 AGI 路线图，分析 2025-2027 关键窗口期的技术演进与生态博弈。
+    </p>
+    <div class="stats-strip">
+      <div class="stat-cell">
+        <div class="stat-value cyan anim-rise">$47.2B</div>
+        <div class="stat-label">2026 全球 Agent 市场规模</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value purple anim-rise">78%</div>
+        <div class="stat-label">企业 AI 部署含 Agent 能力</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value amber anim-rise">3.2×</div>
+        <div class="stat-label">Agent 框架月活增长 (YoY)</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-value green anim-rise">~3-5 年</div>
+        <div class="stat-label">共识 AGI 到来窗口期</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== SECTION 1: AGI PROGRESS BAR ========== -->
+  <section class="section reveal">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2><span>AGI 就绪度</span> · 主要公司进展对比</h2>
+    </div>
+    <p class="section-intro">
+      基于通用推理能力、工具使用、自主性、多模态融合、安全对齐五个维度综合评估。评分动态更新，反映截至 2026 年 5 月的最新公开进展。
+    </p>
+
+    <div class="chart-grid full">
+      <div class="chart-card">
+        <h3>AGI 综合进展指数</h3>
+        <div class="card-sub">评估维度：推理 · 工具 · 自主 · 多模态 · 安全 — 满分 100</div>
+        <div class="chart-wrap" style="max-height:420px">
+          <canvas id="agiBarChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="company-grid" style="margin-top:24px">
+      <div class="co-card openai reveal">
+        <div class="co-header">
+          <span class="co-name">OpenAI</span>
+          <span class="co-score high">72</span>
+        </div>
+        <div class="co-bar-wrap"><div class="co-bar-fill" style="width:72%"></div></div>
+        <p class="co-detail">
+          <strong>GPT-5 + o4 推理链</strong>驱动深度推理。Operator / Codex CLI 打通代码-浏览器-终端闭环。MCP 协议支持正在补齐生态短板。最大不确定性：安全审查与商业化节奏的平衡。
+        </p>
+        <div class="co-tags">
+          <span class="co-tag">GPT-5</span><span class="co-tag">o4 Reasoning</span><span class="co-tag">Operator</span><span class="co-tag">Codex CLI</span><span class="co-tag">Sora</span>
+        </div>
+      </div>
+
+      <div class="co-card deepmind reveal">
+        <div class="co-header">
+          <span class="co-name">Google DeepMind</span>
+          <span class="co-score high">70</span>
+        </div>
+        <div class="co-bar-wrap"><div class="co-bar-fill" style="width:70%"></div></div>
+        <p class="co-detail">
+          <strong>Gemini 2.5 Pro</strong> 百万 token 上下文窗口 + 原生多模态融合。Project Mariner 浏览器 Agent + Astra 实时视觉助手。TPU v6 硬件优势不可忽视。Distributed AGI 路线图最为完整。
+        </p>
+        <div class="co-tags">
+          <span class="co-tag">Gemini 2.5</span><span class="co-tag">Mariner</span><span class="co-tag">Astra</span><span class="co-tag">TPU v6</span><span class="co-tag">AlphaFold 3</span>
+        </div>
+      </div>
+
+      <div class="co-card anthropic reveal">
+        <div class="co-header">
+          <span class="co-name">Anthropic</span>
+          <span class="co-score high">68</span>
+        </div>
+        <div class="co-bar-wrap"><div class="co-bar-fill" style="width:68%"></div></div>
+        <p class="co-detail">
+          <strong>Claude Opus 4.7 + Sonnet 4.6</strong> 在代码代理、长程任务规划领域领先。MCP 协议已成为 Agent 生态事实标准。Constitutional AI 保障安全，但商业化速度偏保守。
+        </p>
+        <div class="co-tags">
+          <span class="co-tag">Claude Opus 4.7</span><span class="co-tag">MCP 协议</span><span class="co-tag">Constitutional AI</span><span class="co-tag"> Claude Code</span>
+        </div>
+      </div>
+
+      <div class="co-card meta reveal">
+        <div class="co-header">
+          <span class="co-name">Meta</span>
+          <span class="co-score mid">55</span>
+        </div>
+        <div class="co-bar-wrap"><div class="co-bar-fill" style="width:55%"></div></div>
+        <p class="co-detail">
+          <strong>Llama 4 Behemoth</strong> 开源路线持续推进。Agent 能力相对滞后，但社区生态力量不可低估。Ray-Ban Meta + AI 助手布局消费级 Agent 终端。
+        </p>
+        <div class="co-tags">
+          <span class="co-tag">Llama 4</span><span class="co-tag">开源</span><span class="co-tag">Meta AI</span><span class="co-tag">Ray-Ban</span>
+        </div>
+      </div>
+
+      <div class="co-card xai reveal">
+        <div class="co-header">
+          <span class="co-name">xAI</span>
+          <span class="co-score mid">48</span>
+        </div>
+        <div class="co-bar-wrap"><div class="co-bar-fill" style="width:48%"></div></div>
+        <p class="co-detail">
+          <strong>Grok 3</strong> 迭代速度惊人。Colossus 超算集群提供算力基础，但在 Agent 生态建设和安全框架上仍有较大差距。Twitter/X 数据是独特优势。
+        </p>
+        <div class="co-tags">
+          <span class="co-tag">Grok 3</span><span class="co-tag">Colossus</span><span class="co-tag">X Data</span>
+        </div>
+      </div>
+
+      <div class="co-card microsoft reveal">
+        <div class="co-header">
+          <span class="co-name">Microsoft</span>
+          <span class="co-score mid">45</span>
+        </div>
+        <div class="co-bar-wrap"><div class="co-bar-fill" style="width:45%"></div></div>
+        <p class="co-detail">
+          <strong>Copilot 全家桶</strong> + Azure AI Foundry 企业级 Agent 平台。不追求最强模型，而是最大分发 —— Office + GitHub + Azure 形成纵深壁垒。
+        </p>
+        <div class="co-tags">
+          <span class="co-tag">Copilot</span><span class="co-tag">Azure AI</span><span class="co-tag">GitHub</span><span class="co-tag">Office</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SECTION 2: AGENT CAPABILITY RADAR ========== -->
+  <section class="section reveal">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2><span>AI Agent</span> · 核心能力雷达图</h2>
+    </div>
+    <p class="section-intro">
+      八维度评估当前 AI Agent 的技术成熟度。工具调用与代码生成已接近生产就绪，自主规划与多智能体协作是下一阶段突破重点。
+    </p>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <h3>Agent 能力成熟度</h3>
+        <div class="card-sub">各维度 0-100 评分 · 当前水平 vs 2025 年初对比</div>
+        <div class="chart-wrap" style="max-height:400px">
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3>Agent 框架生态增长</h3>
+        <div class="card-sub">GitHub Stars 增长趋势 (2024.01 — 2026.05)</div>
+        <div class="chart-wrap" style="max-height:400px">
+          <canvas id="frameworkChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SECTION 3: TIMELINE ========== -->
+  <section class="section reveal">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2><span>关键里程碑</span> · AGI 路线图时间线</h2>
+    </div>
+    <p class="section-intro">
+      梳理 2025-2028 年间已发生和预期的重大进展节点。前半段为已确认事件，后半段基于各公司公开路线图与技术趋势推演。
+    </p>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-date">2025.03</div>
+        <h4>Claude Code 发布 · MCP 协议确立</h4>
+        <p>Anthropic 推出 Claude Code CLI 工具并开源 MCP (Model Context Protocol)，Agent-工具通信标准化迈出关键一步。MCP 迅速被 OpenAI、LangChain、CrewAI 采纳。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2025.06</div>
+        <h4>OpenAI Operator 公测</h4>
+        <p>OpenAI 发布 Operator —— 可自主操作浏览器的 AI Agent。同时推出 Responses API 统一 Agent 开发接口。Agent 从「辅助」迈向「替代执行」。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2025.09</div>
+        <h4>Gemini 2.5 Pro · 百万 Token 窗口</h4>
+        <p>Google 发布 Gemini 2.5 Pro，原生多模态 + 百万 token 上下文。Project Mariner 展示 Chome 浏览器自主导航能力。Astra 实时视觉助手进入实测。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2025.11</div>
+        <h4>GPT-5 + o4 推理系统</h4>
+        <p>OpenAI 发布 GPT-5 整合 o4 推理链，在数学、编程、科学推理基准测试中首次超越人类专家水平。Agent 自主执行复杂任务的可靠性大幅提升。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2026.02</div>
+        <h4>Claude Opus 4.7 · 长程 Agent 任务突破</h4>
+        <p>Anthropic 发布 Opus 4.7，在 SWE-bench 和 Agent 长程任务基准中取得领先。MCP 生态扩展至 2000+ 连接器。Claude Code 成为开发者首选 Agent 工具。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2026.Q3 — 预期</div>
+        <h4>OpenAI Agent SDK 正式版 · 多 Agent 协作</h4>
+        <p>预期 OpenAI 将推出正式 Agent SDK，支持多 Agent 编排与协作。Swarm 架构从实验走向生产。Agent 可跨应用、跨服务完成端到端工作流。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2027 — 预期</div>
+        <h4>分布式 AGI 原型系统</h4>
+        <p>DeepMind 可能展示分布式 AGI 原型——多模型协同、持续学习、自主目标设定。Agent 将从「工具」进化为「同事」，在特定领域实现超人类表现。</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">2028+ — 远景</div>
+        <h4>通用 AI Agent 生态成熟</h4>
+        <p>Agent 协议标准化（类 MCP 2.0）、Agent-to-Agent 通信、AI 原生应用爆发。软件工程的本质从「写代码」变为「定义目标与约束」。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SECTION 4: PREDICTIONS ========== -->
+  <section class="section reveal">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2><span>趋势预测</span> · 2026-2028 关键判断</h2>
+    </div>
+    <p class="section-intro">
+      基于当前技术曲线、资本流向与生态博弈的综合推演。置信度标注为相对评估，不构成投资建议。
+    </p>
+
+    <div class="predictions">
+      <div class="pred-card">
+        <div class="pred-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22"><rect x="2" y="2" width="8" height="8" fill="none" stroke="#00e5ff" stroke-width="1.5"/><rect x="12" y="12" width="8" height="8" fill="none" stroke="#00e5ff" stroke-width="1.5"/><line x1="10" y1="10" x2="14" y2="14" stroke="#ff9100" stroke-width="1.5"/></svg>
+        </div>
+        <h4>MCP 成为 Agent 生态的 TCP/IP</h4>
+        <p>Anthropic 的 MCP 协议将演化为 Agent-工具通信的通用标准，类似 HTTP 之于 Web。OpenAI 即使推出竞品协议，最终也将走向兼容或融合。</p>
+        <div class="confidence"><span class="conf-dot high"></span> 置信度：高</div>
+      </div>
+
+      <div class="pred-card">
+        <div class="pred-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22"><circle cx="11" cy="11" r="9" fill="none" stroke="#b388ff" stroke-width="1.5" stroke-dasharray="3 2"/><circle cx="11" cy="11" r="4" fill="#b388ff" opacity="0.3"/></svg>
+        </div>
+        <h4>2027 年前出现首个「AI 软件工程师」</h4>
+        <p>能够独立理解需求、设计架构、编写代码、调试部署的 AI Agent 将在特定领域（Web 应用、数据分析）达到高级工程师水平，但需要人类审核关键决策。</p>
+        <div class="confidence"><span class="conf-dot high"></span> 置信度：高</div>
+      </div>
+
+      <div class="pred-card">
+        <div class="pred-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22"><polygon points="11,2 21,20 1,20" fill="none" stroke="#ff9100" stroke-width="1.5"/><text x="11" y="17" text-anchor="middle" fill="#ff9100" font-size="8">!</text></svg>
+        </div>
+        <h4>Agent 安全事件将引发监管介入</h4>
+        <p>一次重大的 AI Agent 自主决策事故（金融交易失误、数据泄露、或自主执行危险操作）将触发全球性 AI Agent 监管立法，类似 GDPR 对隐私的影响。</p>
+        <div class="confidence"><span class="conf-dot mid"></span> 置信度：中高</div>
+      </div>
+
+      <div class="pred-card">
+        <div class="pred-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22"><rect x="3" y="5" width="16" height="12" rx="1" fill="none" stroke="#00ff88" stroke-width="1.5"/><line x1="7" y1="9" x2="15" y2="9" stroke="#00ff88" stroke-width="1"/><line x1="7" y1="13" x2="12" y2="13" stroke="#00ff88" stroke-width="1"/></svg>
+        </div>
+        <h4>开源 Agent 框架超越闭源方案</h4>
+        <p>Llama 4 + 开源 Agent 框架组合将在 2027 年达到 GPT-5 级别的 Agent 能力，但需要更多工程投入。企业将优先选择「开源模型 + 自建 Agent」以控制数据主权。</p>
+        <div class="confidence"><span class="conf-dot mid"></span> 置信度：中</div>
+      </div>
+
+      <div class="pred-card">
+        <div class="pred-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22"><circle cx="7" cy="8" r="3" fill="none" stroke="#00e5ff" stroke-width="1.5"/><circle cx="15" cy="8" r="3" fill="none" stroke="#b388ff" stroke-width="1.5"/><circle cx="11" cy="16" r="3" fill="none" stroke="#ff9100" stroke-width="1.5"/></svg>
+        </div>
+        <h4>多 Agent 协作网络成为主流架构</h4>
+        <p>单一 Agent 的局限促使「Agent 团队」架构兴起 —— 专业 Agent 各司其职（架构师、开发者、测试、运维），通过消息总线协作。CrewAI 和 AutoGen 将引领这波浪潮。</p>
+        <div class="confidence"><span class="conf-dot high"></span> 置信度：高</div>
+      </div>
+
+      <div class="pred-card">
+        <div class="pred-icon">
+          <svg width="22" height="22" viewBox="0 0 22 22"><path d="M2 20 L7 12 L12 16 L17 6 L20 2" fill="none" stroke="#00ff88" stroke-width="1.5"/><circle cx="20" cy="2" r="3" fill="#00ff88" opacity="0.2"/></svg>
+        </div>
+        <h4>经济拐点：Agent 时薪低于人类最低工资</h4>
+        <p>到 2028 年，AI Agent 执行大多数知识工作任务的单位成本将降至人类最低工资以下。白领工作的本质将从「执行」转向「监督 Agent 执行」。</p>
+        <div class="confidence"><span class="conf-dot mid"></span> 置信度：中高</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SECTION 5: AGENT STACK ========== -->
+  <section class="section reveal">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2><span>Agent 技术栈</span> · 2026 主流框架对比</h2>
+    </div>
+    <p class="section-intro">
+      AI Agent 开发已形成清晰的分层架构：模型层 → 协议层 → 编排层 → 应用层。以下对比当前主流框架的特性与定位。
+    </p>
+
+    <div class="chart-grid full">
+      <div class="chart-card">
+        <h3>主流 Agent 框架能力矩阵对比</h3>
+        <div class="card-sub">覆盖：多 Agent 协作 · 工具生态 · MCP 支持 · 生产就绪度 · 社区活跃度</div>
+        <div class="chart-wrap" style="max-height:380px">
+          <canvas id="stackChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto; margin-top:24px">
+      <table style="width:100%; border-collapse:collapse; font-size:12px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border); text-align:left;">
+            <th style="padding:12px 16px; color:var(--cyan); font-weight:600;">框架</th>
+            <th style="padding:12px 16px; color:var(--ink-dim);">开发者</th>
+            <th style="padding:12px 16px; color:var(--ink-dim);">多Agent</th>
+            <th style="padding:12px 16px; color:var(--ink-dim);">MCP</th>
+            <th style="padding:12px 16px; color:var(--ink-dim);">生产级</th>
+            <th style="padding:12px 16px; color:var(--ink-dim);">GitHub Stars</th>
+            <th style="padding:12px 16px; color:var(--ink-dim);">定位</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:14px 16px; font-weight:600;">LangChain / LangGraph</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">LangChain Inc</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span> 强大</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span></td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span> 成熟</td>
+            <td style="padding:14px 16px; color:var(--amber);">110k+</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">全能企业框架</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:14px 16px; font-weight:600;">CrewAI</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">CrewAI</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span> 核心</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span></td>
+            <td style="padding:14px 16px;"><span style="color:var(--amber);">⚠</span> 成长中</td>
+            <td style="padding:14px 16px; color:var(--amber);">32k+</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">多Agent角色协作</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:14px 16px; font-weight:600;">Microsoft AutoGen</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">Microsoft</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span> 强大</td>
+            <td style="padding:14px 16px;"><span style="color:var(--amber);">⚠</span> 部分</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span> 企业级</td>
+            <td style="padding:14px 16px; color:var(--amber);">45k+</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">企业多Agent编排</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:14px 16px; font-weight:600;">Anthropic MCP</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">Anthropic</td>
+            <td style="padding:14px 16px; color:var(--ink-faint);">— 协议层</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span> 核心</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span> 标准</td>
+            <td style="padding:14px 16px; color:var(--amber);">38k+</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">Agent-工具协议</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:14px 16px; font-weight:600;">OpenAI Agents SDK</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">OpenAI</td>
+            <td style="padding:14px 16px;"><span style="color:var(--amber);">⚠</span> 实验性</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span></td>
+            <td style="padding:14px 16px;"><span style="color:var(--amber);">⚠</span> Beta</td>
+            <td style="padding:14px 16px; color:var(--amber);">28k+</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">GPT 原生 Agent</td>
+          </tr>
+          <tr>
+            <td style="padding:14px 16px; font-weight:600;">Dify / Coze</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">Dify.AI / 字节</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">有限</td>
+            <td style="padding:14px 16px;"><span style="color:var(--amber);">⚠</span> 部分</td>
+            <td style="padding:14px 16px;"><span style="color:var(--green);">✓</span> 低代码</td>
+            <td style="padding:14px 16px; color:var(--amber);">60k+ / —</td>
+            <td style="padding:14px 16px; color:var(--ink-dim);">低代码Agent平台</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="site-footer">
+    <div>
+      AI Agent 趋势 & AGI 进展深度分析 · 2026.05.11<br>
+      数据来源：公开信息、公司公告、GitHub、行业报告
+    </div>
+    <div>
+      生成时间 2026-05-11 · <a href="https://susurrune.github.io/chart-gallery/">Chart Gallery</a>
+    </div>
+  </footer>
+
+</main>
+
+<script>
+// ========== Intersection Observer ==========
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ========== Chart.js defaults ==========
+Chart.defaults.color = '#8888a0';
+Chart.defaults.borderColor = '#1e1e34';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+// ========== 1. AGI Bar Chart ==========
+new Chart(document.getElementById('agiBarChart'), {
+  type: 'bar',
+  data: {
+    labels: ['OpenAI','Google\nDeepMind','Anthropic','Meta','xAI','Microsoft','Amazon','Apple'],
+    datasets: [
+      {
+        label: '推理能力',
+        data: [75, 72, 70, 55, 48, 42, 35, 30],
+        backgroundColor: '#00e5ff',
+        borderRadius: 0,
+      },
+      {
+        label: '工具使用/Agent',
+        data: [70, 68, 72, 50, 42, 50, 40, 28],
+        backgroundColor: '#b388ff',
+        borderRadius: 0,
+      },
+      {
+        label: '多模态融合',
+        data: [72, 75, 60, 58, 45, 44, 38, 35],
+        backgroundColor: '#ff9100',
+        borderRadius: 0,
+      },
+      {
+        label: '安全对齐',
+        data: [65, 62, 75, 50, 40, 48, 38, 42],
+        backgroundColor: '#00ff88',
+        borderRadius: 0,
+      },
+      {
+        label: '自主性',
+        data: [70, 66, 62, 48, 44, 40, 30, 22],
+        backgroundColor: '#448aff',
+        borderRadius: 0,
+      },
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, pointStyleWidth: 8, padding: 20 } } },
+    scales: {
+      x: { stacked: true, max: 100, grid: { color: '#1a1a2e' }, ticks: { callback: v => v + '%' } },
+      y: { stacked: true, grid: { display: false } }
+    }
+  }
+});
+
+// ========== 2. Radar Chart ==========
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['工具调用','多步推理','代码生成','记忆管理','多Agent协作','安全对齐','自主规划','Web导航'],
+    datasets: [
+      {
+        label: '2026.05 当前水平',
+        data: [85, 78, 82, 65, 60, 70, 55, 72],
+        borderColor: '#00e5ff',
+        backgroundColor: 'rgba(0,229,255,0.08)',
+        borderWidth: 2,
+        pointBackgroundColor: '#00e5ff',
+        pointRadius: 4,
+        pointBorderWidth: 2,
+      },
+      {
+        label: '2025.01 对比基准',
+        data: [62, 55, 60, 38, 32, 52, 28, 45],
+        borderColor: '#555570',
+        backgroundColor: 'rgba(0,0,0,0)',
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+        pointBackgroundColor: '#555570',
+        pointRadius: 3,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } },
+    scales: {
+      r: {
+        min: 0, max: 100,
+        grid: { color: '#1a1a2e' },
+        angleLines: { color: '#1a1a2e' },
+        pointLabels: { font: { size: 10 }, color: '#8888a0' },
+        ticks: { display: false }
+      }
+    }
+  }
+});
+
+// ========== 3. Framework Growth Chart ==========
+new Chart(document.getElementById('frameworkChart'), {
+  type: 'line',
+  data: {
+    labels: ['2024.01','2024.04','2024.07','2024.10','2025.01','2025.04','2025.07','2025.10','2026.01','2026.05'],
+    datasets: [
+      {
+        label: 'LangChain',
+        data: [65, 72, 78, 82, 88, 94, 100, 106, 112, 118],
+        borderColor: '#00ff88',
+        backgroundColor: 'rgba(0,255,136,0.06)',
+        borderWidth: 2.5,
+        tension: 0.3,
+        fill: true,
+        pointRadius: 0,
+      },
+      {
+        label: 'CrewAI',
+        data: [5, 10, 18, 28, 38, 50, 62, 75, 88, 102],
+        borderColor: '#ff9100',
+        borderWidth: 2,
+        tension: 0.35,
+        fill: false,
+        pointRadius: 0,
+      },
+      {
+        label: 'AutoGen',
+        data: [12, 22, 35, 48, 60, 68, 76, 84, 92, 98],
+        borderColor: '#448aff',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: false,
+        pointRadius: 0,
+      },
+      {
+        label: 'Anthropic MCP',
+        data: [0, 0, 0, 8, 22, 38, 55, 72, 90, 106],
+        borderColor: '#b388ff',
+        borderWidth: 2.5,
+        tension: 0.35,
+        fill: false,
+        pointRadius: 0,
+        borderDash: [6, 2],
+      },
+      {
+        label: 'OpenAI Agents SDK',
+        data: [0, 0, 0, 0, 0, 8, 22, 40, 58, 76],
+        borderColor: '#00e5ff',
+        borderWidth: 2,
+        tension: 0.3,
+        fill: false,
+        pointRadius: 0,
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } },
+    scales: {
+      y: {
+        grid: { color: '#1a1a2e' },
+        ticks: { callback: v => (v / 1).toFixed(0) + 'k' }
+      },
+      x: { grid: { display: false } }
+    },
+    interaction: { intersect: false, mode: 'index' }
+  }
+});
+
+// ========== 4. Agent Stack Bar Chart ==========
+new Chart(document.getElementById('stackChart'), {
+  type: 'bar',
+  data: {
+    labels: ['LangChain','CrewAI','AutoGen','MCP','OpenAI SDK','Dify'],
+    datasets: [
+      { label: '多Agent协作', data: [90, 95, 92, 0, 55, 35], backgroundColor: '#00e5ff', borderRadius: 0 },
+      { label: '工具生态', data: [90, 70, 75, 95, 65, 80], backgroundColor: '#b388ff', borderRadius: 0 },
+      { label: 'MCP支持', data: [88, 80, 60, 100, 75, 50], backgroundColor: '#00ff88', borderRadius: 0 },
+      { label: '生产就绪度', data: [90, 60, 85, 90, 50, 85], backgroundColor: '#ff9100', borderRadius: 0 },
+      { label: '社区活跃', data: [95, 78, 82, 88, 72, 90], backgroundColor: '#448aff', borderRadius: 0 },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'top', labels: { usePointStyle: true, pointStyleWidth: 8, padding: 20 } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { max: 100, grid: { color: '#1a1a2e' }, ticks: { callback: v => v + '%' } }
+    }
+  }
+});
+</script>
+</body>
+</html>
