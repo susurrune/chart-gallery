@@ -1,7 +1,7 @@
 {
   "name": "chart-gallery",
   "version": "1.0.0",
-  "description": "数据分析图表展示站",
+  "description": "数据可视化图表展示画廊 — AI/LLM/开发者生态/开源趋势分析 · 自动构建 · GitHub Pages 部署",
   "scripts": {
     "build": "node build.js",
     "start": "node build.js && node server.js",
