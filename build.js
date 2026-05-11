@@ -114,5 +114,11 @@ console.log('\n  分类：' + Object.entries(stats)
 const template = fs.readFileSync(path.join(SRC_DIR, 'index.html'), 'utf-8');
 fs.writeFileSync(path.join(DIST_DIR, 'index.html'), template.replace('__CHARTS_DATA__', JSON.stringify(charts)));
 
+// 复制静态资源
+for (const asset of ['favicon.svg']) {
+  const src = path.join(SRC_DIR, asset);
+  if (fs.existsSync(src)) fs.copyFileSync(src, path.join(DIST_DIR, asset));
+}
+
 const totalSize = (charts.reduce((s, c) => s + c.size, 0) / 1024).toFixed(0);
 console.log(`\n✓ ${charts.length} 个图表 (来源: ./charts/), 共 ${totalSize} KB`);
