@@ -37,6 +37,33 @@ function extractMeta(content, name) {
   return m ? m[1] : null;
 }
 
+// 文件名 → 分类映射（当 meta 标签缺失时自动归类）
+const CATEGORY_MAP = [
+  ['llm', /llm_|^llm_/],
+  ['dev', /developer_|enterprise_|^salary_/],
+  ['oss', /github_|ai_agent_/],
+  ['lang', /programming_|typescript_|frontend_|^language_/],
+  ['ai', /^ai_|ai_coding_|ai_conference_|ai_landscape_/],
+];
+
+function inferCategory(f, content) {
+  const fromMeta = extractMeta(content, 'chart-category');
+  if (fromMeta) return fromMeta;
+  for (const [cat, pattern] of CATEGORY_MAP) {
+    if (pattern.test(f)) return cat;
+  }
+  return 'other';
+}
+
+const CATEGORY_LABELS = {
+  llm: 'LLM & 大模型',
+  dev: '开发者生态',
+  oss: '开源趋势',
+  lang: '编程语言',
+  ai: 'AI 工具 & 行业',
+  other: '其他',
+};
+
 const charts = [];
 
 for (const f of files) {
@@ -44,7 +71,6 @@ for (const f of files) {
   const stat = fs.statSync(srcPath);
   const content = fs.readFileSync(srcPath, 'utf-8');
 
-  // 优先读取 <meta> 标签，其次正则回退
   const title = extractMeta(content, 'chart-title')
     || (content.match(/<title>([^<]+)<\/title>/) || [])[1]
     || f.replace('.html', '');
@@ -59,12 +85,15 @@ for (const f of files) {
     || stat.mtime.toISOString().slice(0, 10);
 
   const tags = extractMeta(content, 'chart-tags') || '';
+  const category = inferCategory(f, content);
 
   charts.push({
     filename: f,
     title: title.trim(),
     description: description.trim(),
     tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+    category,
+    categoryLabel: CATEGORY_LABELS[category] || category,
     size: stat.size,
     mtime: stat.mtime.toISOString(),
     date: date.trim(),
@@ -73,6 +102,14 @@ for (const f of files) {
   fs.copyFileSync(srcPath, path.join(CHARTS_OUT, f));
   console.log(`  ${f}`);
 }
+
+// 分类统计打印
+const stats = {};
+for (const c of charts) {
+  stats[c.category] = (stats[c.category] || 0) + 1;
+}
+console.log('\n  分类：' + Object.entries(stats)
+  .map(([k, v]) => `${CATEGORY_LABELS[k] || k} ${v}个`).join(' · '));
 
 const template = fs.readFileSync(path.join(SRC_DIR, 'index.html'), 'utf-8');
 fs.writeFileSync(path.join(DIST_DIR, 'index.html'), template.replace('__CHARTS_DATA__', JSON.stringify(charts)));

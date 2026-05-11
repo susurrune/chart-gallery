@@ -4,261 +4,447 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chart Gallery</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/fraunces@5.0.0/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.0.0/index.css">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
-    background: #0f0f13;
-    color: #e0e0e0;
-    min-height: 100vh;
-  }
-  .navbar {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 32px;
-    background: #1a1a24;
-    border-bottom: 1px solid #2a2a3a;
-    position: sticky; top: 0; z-index: 100;
-  }
-  .navbar h1 { font-size: 18px; font-weight: 600; color: #f0f0f0; }
-  .navbar h1 span { color: #d97757; }
-  .navbar .count { font-size: 13px; color: #666; background: #2a2a3a; padding: 4px 12px; border-radius: 20px; }
-  .search-bar { display: flex; gap: 12px; align-items: center; }
-  .search-bar input {
-    background: #2a2a3a; border: 1px solid #3a3a4a; border-radius: 8px;
-    padding: 8px 14px; color: #e0e0e0; font-size: 13px; width: 240px; outline: none;
-  }
-  .search-bar input:focus { border-color: #d97757; }
-  .search-bar input::placeholder { color: #555; }
-  .container { max-width: 1400px; margin: 0 auto; padding: 24px 32px; }
-
-  .stats { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
-  .stat-card {
-    background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 10px;
-    padding: 16px 20px; flex: 1; min-width: 120px;
-  }
-  .stat-card .num { font-size: 28px; font-weight: 700; color: #f0f0f0; }
-  .stat-card .num span { color: #d97757; }
-  .stat-card .label { font-size: 12px; color: #666; margin-top: 4px; }
-
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
-  .card {
-    background: #1a1a24; border: 1px solid #2a2a3a; border-radius: 12px;
-    overflow: hidden; transition: all 0.2s; cursor: pointer;
-  }
-  .card:hover {
-    border-color: #d97757; transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-  }
-  .card-preview {
-    width: 100%; height: 200px; border: none; background: #12121a; pointer-events: none;
-  }
-  .card-body { padding: 14px 16px; border-top: 1px solid #2a2a3a; }
-  .card-body .title {
-    font-size: 14px; font-weight: 500; color: #f0f0f0;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .card-body .desc {
-    font-size: 12px; color: #666; margin-top: 4px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .card-body .meta-row {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 8px; font-size: 11px; color: #444;
-  }
-  .card-body .meta-row .tag { background: #2a2a3a; padding: 2px 8px; border-radius: 4px; color: #888; }
-  .tags-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
-  .tag-badge { background: #1a2a3a; color: #58a6ff; font-size: 10px; padding: 2px 8px; border-radius: 4px; border: 1px solid #1a3a5a; }
-  .card-body .actions { display: flex; gap: 8px; margin-top: 8px; }
-  .card-body .actions button {
-    flex: 1; padding: 6px 0; border-radius: 6px; border: none;
-    font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.15s;
-  }
-  .btn-view { background: #d97757; color: #fff; }
-  .btn-view:hover { background: #c06848; }
-  .btn-open { background: #2a2a3a; color: #aaa; }
-  .btn-open:hover { background: #3a3a4a; color: #f0f0f0; }
-
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85); z-index: 1000; padding: 24px;
-  }
-  .modal-overlay.open { display: flex; flex-direction: column; }
-  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .modal-header h2 { font-size: 16px; color: #f0f0f0; }
-  .modal-close { background: none; border: none; color: #666; font-size: 22px; cursor: pointer; padding: 4px 10px; border-radius: 6px; }
-  .modal-close:hover { background: #2a2a3a; color: #f0f0f0; }
-  .modal-body { flex: 1; border: none; border-radius: 8px; background: #fff; width: 100%; }
-  .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
-  .modal-actions a { padding: 8px 20px; border-radius: 8px; font-size: 13px; text-decoration: none; font-family: inherit; }
-  .modal-actions .open-tab { background: #d97757; color: #fff; }
-  .modal-actions .open-tab:hover { background: #c06848; }
-  .empty-state { text-align: center; padding: 60px 20px; color: #555; }
-  .empty-state h2 { font-size: 18px; margin-bottom: 8px; }
-  .empty-state p { font-size: 13px; }
-
-  /* 手机端优化 */
-  @media (max-width: 768px) {
-    .navbar {
-      padding: 12px 16px; flex-wrap: wrap; gap: 10px;
-      position: relative;
-    }
-    .navbar h1 { font-size: 16px; width: auto; }
-    .search-bar { width: 100%; gap: 8px; }
-    .search-bar input { flex: 1; width: auto; font-size: 16px; padding: 10px 12px; }
-    .navbar .count { flex-shrink: 0; }
-    .container { padding: 16px; }
-    .stats { gap: 10px; }
-    .stat-card { padding: 12px 14px; min-width: auto; flex: 1; }
-    .stat-card .num { font-size: 22px; }
-    .stat-card .label { font-size: 11px; }
-    .grid { grid-template-columns: 1fr; gap: 12px; }
-    .card-preview { height: 180px; }
-    .card-body { padding: 12px 14px; }
-    .card-body .title { font-size: 13px; }
-    .card-body .actions button { padding: 10px 0; font-size: 13px; }
-
-    .modal-overlay { padding: 0; }
-    .modal-header { padding: 14px 16px; margin-bottom: 0; }
-    .modal-header h2 { font-size: 15px; max-width: 80%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .modal-close { font-size: 26px; padding: 4px 12px; }
-    .modal-body { border-radius: 0; }
-    .modal-actions { padding: 12px 16px; margin-top: 0; }
-    .modal-actions a { flex: 1; text-align: center; padding: 12px 16px; font-size: 14px; }
-  }
-
-  @media (max-width: 420px) {
-    .stats { gap: 6px; }
-    .stat-card { padding: 10px 12px; }
-    .stat-card .num { font-size: 18px; }
-    .stat-card .label { font-size: 10px; }
-    .card-preview { height: 150px; }
-    .tags-row { gap: 3px; }
-    .tag-badge { font-size: 9px; padding: 1px 6px; }
-    .navbar h1 { font-size: 14px; }
-    .navbar .count { font-size: 11px; padding: 3px 10px; }
-  }
+:root {
+  --bg: #0a0a0e;
+  --surface: #111117;
+  --surface2: #18181f;
+  --ink: #f0ede8;
+  --ink2: #a09c95;
+  --ink3: #55524e;
+  --accent: #e06030;
+  --accent-glow: rgba(224,96,48,.15);
+  --line: #1e1e2a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'JetBrains Mono','SF Mono','Cascadia Code',monospace;
+  background: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E"),
+    repeating-linear-gradient(transparent,transparent 1px,rgba(255,255,255,.007) 1px,rgba(255,255,255,.007) 2px);
+  background-size: 200px 200px, 100% 1px;
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+/* navbar */
+.navbar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 32px;background:rgba(10,10,14,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;gap:14px;
+}
+.nav-left{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-mark{width:30px;height:30px;background:var(--accent);display:grid;place-items:center;
+  font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:900;color:#fff;
+  clip-path:polygon(0 0,100% 0,100% 68%,68% 100%,0 100%);}
+.nav-left h1{font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:700;color:var(--ink);letter-spacing:-.3px;}
+.nav-left h1 span{color:var(--accent);}
+.nav-right{display:flex;align-items:center;gap:10px;flex:1;max-width:500px;}
+.nav-right input{flex:1;background:var(--surface);border:1px solid var(--line);padding:9px 14px;color:var(--ink);
+  font-family:inherit;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;}
+.nav-right input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+.nav-right input::placeholder{color:var(--ink3);}
+.nav-badge{flex-shrink:0;font-size:10px;color:var(--ink2);background:var(--surface);border:1px solid var(--line);padding:6px 12px;text-transform:uppercase;letter-spacing:.5px;}
+/* container */
+.container{max-width:1440px;margin:0 auto;padding:24px 32px;}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-bottom:18px;background:var(--line);gap:1px;}
+.stat-card{background:var(--surface);padding:20px 22px;position:relative;overflow:hidden;}
+.stat-card::after{content:'';position:absolute;top:-20px;right:-20px;width:60px;height:60px;background:var(--accent-glow);border-radius:50%;opacity:0;transition:opacity .3s;}
+.stat-card:hover::after{opacity:1;}
+.stat-card .num{font-family:'Fraunces',Georgia,serif;font-size:clamp(26px,5vw,38px);font-weight:800;color:var(--ink);letter-spacing:-1px;line-height:1;}
+.stat-card .num em{font-style:normal;color:var(--accent);}
+.stat-card .lbl{font-family:inherit;font-size:10px;color:var(--ink3);margin-top:4px;text-transform:uppercase;letter-spacing:.8px;}
+/* category tabs */
+.cat-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.cat-tab{padding:7px 16px;font-family:inherit;font-size:11px;color:var(--ink2);background:var(--surface);border:1px solid var(--line);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+.cat-tab:hover{border-color:var(--ink3);color:var(--ink);}
+.cat-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+/* time pills */
+.time-pills{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.time-pill{padding:5px 14px;font-family:inherit;font-size:10px;color:var(--ink3);background:var(--surface);border:1px solid var(--line);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.4px;}
+.time-pill:hover{border-color:var(--ink3);color:var(--ink);}
+.time-pill.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+/* upload */
+.upload-btn{flex-shrink:0;background:var(--accent);border:none;color:#fff;font-family:inherit;font-size:10px;padding:8px 16px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;font-weight:600;transition:background .15s;}
+.upload-btn:hover{background:#c8522a;}
+.upload-body{padding:24px 28px;flex:1;display:flex;flex-direction:column;}
+.upload-zone{border:2px dashed var(--line);border-radius:8px;padding:48px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:var(--surface2);}
+.upload-zone .uz-icon{font-size:32px;color:var(--ink3);margin-bottom:8px;}
+.upload-zone .uz-text{font-size:13px;color:var(--ink2);}
+.upload-zone .uz-sub{font-size:10px;color:var(--ink3);margin-top:4px;}
+.upload-info{padding:16px 0;border-bottom:1px solid var(--line);margin-bottom:16px;}
+.upload-info .ui-file{font-size:12px;color:var(--ink);margin-bottom:10px;}
+.upload-info .ui-row{display:flex;align-items:center;gap:12px;font-size:11px;}
+.upload-info .ui-row label{color:var(--ink2);min-width:40px;}
+.upload-info .ui-row select{flex:1;background:var(--surface);border:1px solid var(--line);color:var(--ink);padding:8px 10px;font-family:inherit;font-size:11px;outline:none;}
+.upload-info .ui-row select:focus{border-color:var(--accent);}
+.upload-status{font-size:11px;color:var(--ink2);padding:8px 0;min-height:28px;}
+.upload-submit{background:var(--accent);color:#fff;border:none;padding:12px 0;font-family:inherit;font-size:11px;cursor:pointer;font-weight:600;text-transform:uppercase;letter-spacing:.5px;transition:background .15s;margin-top:auto;}
+.upload-submit:hover{background:#c8522a;}
+.upload-submit:disabled{opacity:.4;cursor:not-allowed;}
+/* grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:18px;}
+/* card */
+.card{background:var(--surface);border:1px solid var(--line);overflow:hidden;transition:border-color .2s,transform .2s,box-shadow .2s;position:relative;}
+.card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 16px 48px rgba(0,0,0,.6);}
+.card-preview{width:100%;height:200px;border:none;background:var(--bg);border-bottom:1px solid var(--line);}
+.card-body{padding:14px 16px 12px;}
+.card-body .tit{font-family:'Fraunces',Georgia,serif;font-size:14px;font-weight:700;color:var(--ink);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;letter-spacing:-.2px;line-height:1.35;}
+.card-body .desc{font-size:11px;color:var(--ink2);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-body .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:10px;color:var(--ink3);}
+.card-body .meta .sz{background:var(--surface2);padding:2px 10px;color:var(--ink2);font-size:9px;text-transform:uppercase;letter-spacing:.4px;}
+.tags-row{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
+.tag-badge{background:rgba(224,96,48,.08);color:var(--accent);font-size:9px;padding:2px 8px;border:1px solid rgba(224,96,48,.2);}
+.card-body .act{display:flex;gap:8px;margin-top:10px;}
+.card-body .act button{flex:1;padding:9px 0;border:none;font-family:inherit;font-size:10px;cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+.btn-v{background:var(--accent);color:#fff;}
+.btn-v:hover{background:#c8522a;}
+.btn-o{background:var(--surface2);color:var(--ink2);}
+.btn-o:hover{background:var(--line);color:var(--ink);}
+/* modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,14,.96);z-index:1000;padding:20px;}
+.modal-overlay.open{display:flex;flex-direction:column;animation:fIn .2s ease;}
+@keyframes fIn{from{opacity:0}to{opacity:1}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 4px;}
+.modal-header h2{font-family:'Fraunces',Georgia,serif;font-size:15px;color:var(--ink);font-weight:700;letter-spacing:-.2px;max-width:80%;}
+.modal-close{background:none;border:1px solid var(--line);color:var(--ink2);font-size:18px;cursor:pointer;width:34px;height:34px;display:grid;place-items:center;transition:all .15s;}
+.modal-close:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
+.modal-body{flex:1;border:none;background:#fff;width:100%;}
+.modal-actions{display:flex;gap:8px;margin-top:10px;}
+.modal-actions a{padding:11px 22px;font-size:11px;font-family:inherit;text-decoration:none;text-transform:uppercase;letter-spacing:.5px;font-weight:600;transition:all .15s;}
+.modal-actions .open-tab{background:var(--accent);color:#fff;}
+.modal-actions .open-tab:hover{background:#c8522a;}
+.empty-state{text-align:center;padding:80px 20px;color:var(--ink3);grid-column:1/-1;}
+.empty-state h2{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:700;color:var(--ink2);margin-bottom:4px;}
+.empty-state p{font-size:11px;}
+.footer{margin-top:44px;padding:24px 0 20px;border-top:1px solid var(--line);text-align:center;font-size:10px;color:var(--ink3);letter-spacing:.5px;text-transform:uppercase;}
+@media (max-width:800px){
+  .navbar{flex-wrap:wrap;padding:10px 16px;gap:8px;}
+  .nav-right{max-width:none;flex:100%;}
+  .nav-right input{font-size:16px;padding:10px 12px;}
+  .container{padding:14px;}
+  .stats{grid-template-columns:1fr;}
+  .stat-card{padding:16px 18px;}
+  .grid{grid-template-columns:1fr;gap:12px;}
+  .card-preview{height:170px;}
+  .modal-overlay{padding:0;}
+  .modal-header{padding:12px 14px;margin-bottom:0;}
+  .modal-header h2{font-size:14px;}
+  .modal-close{width:38px;height:38px;font-size:20px;}
+  .modal-body{border-radius:0;}
+  .modal-actions{padding:10px 14px;margin-top:0;}
+  .modal-actions a{flex:1;text-align:center;padding:12px 16px;font-size:12px;}
+  .upload-btn{width:100%;text-align:center;}
+  .upload-body{padding:16px 18px;}
+  .upload-zone{padding:32px 16px;}
+}
+@media (max-width:420px){
+  .nav-left h1{font-size:14px;}
+  .logo-mark{width:26px;height:26px;font-size:14px;}
+  .upload-btn{font-size:9px;padding:7px 12px;}
+  .nav-badge{font-size:9px;padding:5px 9px;}
+  .stat-card .num{font-size:22px;}
+  .stat-card .lbl{font-size:9px;}
+  .card-preview{height:140px;}
+  .card-body{padding:12px;}
+  .card-body .tit{font-size:13px;}
+  .tags-row{gap:3px;}
+  .tag-badge{font-size:8px;padding:1px 6px;}
+}
 </style>
 </head>
 <body>
 
 <div class="navbar">
-  <h1><span>≡</span> Chart Gallery</h1>
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="搜索图表..." oninput="render()">
-    <span class="count" id="totalCount">0 个图表</span>
+  <div class="nav-left">
+    <div class="logo-mark">∥</div>
+    <h1>Chart <span>Gallery</span></h1>
+  </div>
+  <div class="nav-right">
+    <input type="text" id="searchInput" placeholder="搜索 · 标题 / 描述 / 标签" oninput="render()">
+    <button class="upload-btn" id="uploadBtn" onclick="openUpload()">+ 上传</button>
+    <span class="nav-badge" id="totalCount">0 图表</span>
   </div>
 </div>
 
 <div class="container">
   <div class="stats">
-    <div class="stat-card">
-      <div class="num" id="statTotal">0</div>
-      <div class="label">图表总数</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" id="statWeek">0</div>
-      <div class="label">最近 7 天新增</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" id="statSize">0 MB</div>
-      <div class="label">总大小</div>
-    </div>
+    <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">图表总数</div></div>
+    <div class="stat-card"><div class="num" id="statWeek">0</div><div class="lbl">最近<em>7</em>天新增</div></div>
+    <div class="stat-card"><div class="num" id="statSize">0 <em>MB</em></div><div class="lbl">总大小</div></div>
   </div>
+  <div class="cat-tabs" id="catTabs"></div>
+  <div class="time-pills" id="timePills"></div>
   <div class="grid" id="grid"></div>
 </div>
+
+<div class="footer">Generated by Claude · GitHub Pages</div>
 
 <div class="modal-overlay" id="modal">
   <div class="modal-header">
     <h2 id="modalTitle">图表</h2>
-    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <button class="modal-close" onclick="closeModal()">×</button>
   </div>
   <iframe class="modal-body" id="modalIframe"></iframe>
   <div class="modal-actions">
-    <a class="open-tab" id="modalOpenTab" target="_blank">在新标签页打开</a>
+    <a class="open-tab" id="modalOpenTab" target="_blank">新标签页打开</a>
   </div>
 </div>
 
-<!-- 静态构建时注入图表数据 -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="modal-header">
+    <h2>上传图表</h2>
+    <button class="modal-close" onclick="closeUpload()">x</button>
+  </div>
+  <div class="upload-body">
+    <div class="upload-zone" id="uploadZone">
+      <div class="uz-icon">+</div>
+      <div class="uz-text">拖放 HTML 文件到此处</div>
+      <div class="uz-sub">或点击选择文件</div>
+      <input type="file" id="uploadFileInput" accept=".html" hidden>
+    </div>
+    <div class="upload-info" id="uploadInfo" style="display:none">
+      <div class="ui-file"><span id="uploadFileName"></span></div>
+      <div class="ui-row">
+        <label>分类</label>
+        <select id="uploadCategory">
+          <option value="">自动检测</option>
+          <option value="llm">LLM & 大模型</option>
+          <option value="dev">开发者生态</option>
+          <option value="oss">开源趋势</option>
+          <option value="lang">编程语言</option>
+          <option value="ai">AI 工具 & 行业</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+    </div>
+    <div class="upload-status" id="uploadStatus"></div>
+    <button class="upload-submit" id="uploadSubmit" style="display:none" onclick="submitUpload()">上传并构建</button>
+  </div>
+</div>
+
 <script id="chartsData" type="application/json">__CHARTS_DATA__</script>
 <script>
 const BASE = document.querySelector('base')?.getAttribute('href') || '.';
 let charts = [];
-
+let selectedCat = 'all';
+let selectedTime = 'all';
 try {
   const raw = document.getElementById('chartsData').textContent;
-  if (raw && raw !== '__CHARTS_DATA__') {
-    charts = JSON.parse(raw);
-  }
+  if (raw && raw !== '__CHARTS_DATA__') charts = JSON.parse(raw);
 } catch(e) {}
 
 async function loadCharts() {
-  if (charts.length > 0) { render(); return; }
+  if (charts.length > 0) { render(); renderCats(); renderTimePills(); return; }
   try {
     const res = await fetch('./api/charts');
     const data = await res.json();
     charts = data.charts || [];
   } catch(e) {
-    document.getElementById('grid').innerHTML =
-      `<div class="empty-state"><h2>没有找到图表</h2><p>请先运行 build.js 生成静态文件</p></div>`;
+    document.getElementById('grid').innerHTML = '<div class="empty-state"><h2>No charts found</h2><p>请先运行 build.js 生成静态文件</p></div>';
   }
+  renderCats();
+  renderTimePills();
   render();
 }
 
 function render() {
   const q = document.getElementById('searchInput').value.toLowerCase();
   const filtered = charts.filter(c =>
-    c.title.toLowerCase().includes(q) ||
+    (selectedCat === 'all' || c.category === selectedCat) &&
+    (selectedTime === 'all' || getTimePeriod(c.date) === selectedTime) &&
+    (c.title.toLowerCase().includes(q) ||
     (c.description && c.description.toLowerCase().includes(q)) ||
     c.filename.toLowerCase().includes(q) ||
-    (c.tags && c.tags.some(t => t.toLowerCase().includes(q)))
+    (c.tags && c.tags.some(t => t.toLowerCase().includes(q))))
   );
-
   const now = Date.now();
   const weekAgo = now - 7 * 86400000;
   const weekCount = charts.filter(c => new Date(c.mtime).getTime() > weekAgo).length;
   const totalSize = charts.reduce((s, c) => s + c.size, 0);
 
   document.getElementById('statTotal').textContent = charts.length;
-  document.getElementById('statWeek').textContent = weekCount;
-  document.getElementById('statSize').textContent = (totalSize / 1024 / 1024).toFixed(2);
-  document.getElementById('totalCount').textContent = `${charts.length} 个图表`;
+  document.getElementById('statWeek').innerHTML = weekCount;
+  document.getElementById('statSize').innerHTML = (totalSize / 1024 / 1024).toFixed(2) + ' <em>MB</em>';
+  document.getElementById('totalCount').textContent = charts.length + ' 图表';
 
   const grid = document.getElementById('grid');
   if (filtered.length === 0) {
-    grid.innerHTML = `<div class="empty-state"><h2>没有匹配的图表</h2><p>试试其他搜索词</p></div>`;
+    grid.innerHTML = '<div class="empty-state"><h2>没有匹配的图表</h2><p>试试其他搜索词</p></div>';
     return;
   }
 
   grid.innerHTML = filtered.map(c => {
-    const sizeStr = c.size > 1024 ? `${(c.size / 1024).toFixed(1)} KB` : `${c.size} B`;
-    const dateStr = new Date(c.mtime).toLocaleDateString('zh-CN');
-    const chartPath = `./charts/${c.filename}`;
-    return `
-      <div class="card">
-        <iframe class="card-preview" src="${chartPath}" loading="lazy" sandbox="allow-scripts"></iframe>
-        <div class="card-body">
-          <div class="title" title="${escHtml(c.title)}">${escHtml(c.title)}</div>
-          <div class="desc">${escHtml(c.description) || escHtml(c.filename)}</div>
-          <div class="meta-row">
-            <span>${escHtml(c.date || dateStr)}</span>
-            <span class="tag">${sizeStr}</span>
-          </div>
-          ${c.tags && c.tags.length ? `<div class="tags-row">${c.tags.map(t => `<span class="tag-badge">${escHtml(t)}</span>`).join('')}</div>` : ''}
-          <div class="actions">
-            <button class="btn-view" onclick="openModal('${chartPath}', '${escHtml(c.title)}')">预览</button>
-            <button class="btn-open" onclick="window.open('${chartPath}', '_blank')">新标签页</button>
-          </div>
-        </div>
-      </div>
-    `;
+    const sz = c.size > 1024 ? (c.size / 1024).toFixed(1) + ' KB' : c.size + ' B';
+    const ds = new Date(c.mtime).toLocaleDateString('zh-CN');
+    const p = './charts/' + c.filename;
+    return '<div class="card">' +
+      '<iframe class="card-preview" src="' + p + '" loading="lazy" sandbox="allow-scripts"></iframe>' +
+      '<div class="card-body">' +
+      '<div class="tit">' + esc(c.title) + '</div>' +
+      '<div class="desc">' + (esc(c.description) || esc(c.filename)) + '</div>' +
+      '<div class="meta"><span>' + esc(c.date || ds) + '</span><span class="sz">' + sz + '</span></div>' +
+      (c.tags && c.tags.length ? '<div class="tags-row">' + c.tags.map(t => '<span class="tag-badge">' + esc(t) + '</span>').join('') + '</div>' : '') +
+      '<div class="act">' +
+      '<button class="btn-v" onclick="openModal(\'' + p + '\',\'' + esc(c.title).replace(/'/g,"\\'") + '\')">预览</button>' +
+      '<button class="btn-o" onclick="window.open(\'' + p + '\',\'_blank\')">新标签</button>' +
+      '</div></div></div>';
   }).join('');
 }
 
-function escHtml(s) {
+function esc(s) {
   if (!s) return '';
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+
+function renderCats() {
+  const cats = { all: '全部' };
+  for (const c of charts) {
+    if (c.category && !cats[c.category]) cats[c.category] = c.categoryLabel || c.category;
+  }
+  const tabs = document.getElementById('catTabs');
+  tabs.innerHTML = Object.entries(cats).map(([k, v]) =>
+    '<button class="cat-tab' + (k === selectedCat ? ' active' : '') + '" data-cat="' + k + '">' + esc(v) + '</button>'
+  ).join('');
+  tabs.addEventListener('click', e => {
+    const btn = e.target.closest('.cat-tab');
+    if (!btn) return;
+    selectedCat = btn.dataset.cat;
+    document.querySelectorAll('.cat-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === selectedCat));
+    render();
+  });
+}
+
+function getTimePeriod(dateStr) {
+  if (!dateStr) return 'year';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return 'year';
+  const now = new Date();
+
+  // This week (Mon-Sun)
+  const dow = now.getDay();
+  const monOff = dow === 0 ? -6 : 1 - dow;
+  const wkStart = new Date(now);
+  wkStart.setDate(now.getDate() + monOff);
+  wkStart.setHours(0,0,0,0);
+  const wkEnd = new Date(wkStart);
+  wkEnd.setDate(wkStart.getDate() + 6);
+  wkEnd.setHours(23,59,59,999);
+  if (d >= wkStart && d <= wkEnd) return 'week';
+
+  // This month
+  const mStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const mEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23,59,59,999);
+  if (d >= mStart && d <= mEnd) return 'month';
+
+  // This quarter
+  const q = Math.floor(now.getMonth() / 3);
+  const qStart = new Date(now.getFullYear(), q * 3, 1);
+  const qEnd = new Date(now.getFullYear(), (q + 1) * 3, 0, 23,59,59,999);
+  if (d >= qStart && d <= qEnd) return 'quarter';
+
+  // This year
+  const yStart = new Date(now.getFullYear(), 0, 1);
+  const yEnd = new Date(now.getFullYear(), 11, 31, 23,59,59,999);
+  if (d >= yStart && d <= yEnd) return 'year';
+
+  return 'earlier';
+}
+
+function renderTimePills() {
+  const periods = [
+    ['all', '全部时间'],
+    ['week', '本周'],
+    ['month', '本月'],
+    ['quarter', '本季度'],
+    ['year', '今年'],
+    ['earlier', '更早']
+  ];
+  const el = document.getElementById('timePills');
+  if (!el) return;
+  el.innerHTML = periods.map(([k, v]) =>
+    '<button class="time-pill' + (k === selectedTime ? ' active' : '') + '" data-time="' + k + '">' + v + '</button>'
+  ).join('');
+  el.addEventListener('click', function(e) {
+    var btn = e.target.closest('.time-pill');
+    if (!btn) return;
+    selectedTime = btn.dataset.time;
+    document.querySelectorAll('.time-pill').forEach(function(t) { t.classList.toggle('active', t.dataset.time === selectedTime); });
+    render();
+  });
+}
+
+function openUpload() {
+  document.getElementById('uploadModal').classList.add('open');
+  document.getElementById('uploadFileInput').value = '';
+  document.getElementById('uploadInfo').style.display = 'none';
+  document.getElementById('uploadSubmit').style.display = 'none';
+  document.getElementById('uploadStatus').textContent = '';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeUpload() {
+  document.getElementById('uploadModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function handleUploadFile(file) {
+  if (!file.name.endsWith('.html')) {
+    document.getElementById('uploadStatus').textContent = '仅支持 .html 文件';
+    return;
+  }
+  document.getElementById('uploadFileName').textContent = file.name;
+  document.getElementById('uploadStatus').textContent = '读取中...';
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var base64 = e.target.result.split(',')[1];
+    document.getElementById('uploadStatus').textContent = '就绪，点击上传';
+    document.getElementById('uploadInfo').style.display = 'block';
+    document.getElementById('uploadSubmit').style.display = 'block';
+    document.getElementById('uploadSubmit').dataset.filename = file.name;
+    document.getElementById('uploadSubmit').dataset.content = base64;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitUpload() {
+  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    document.getElementById('uploadStatus').textContent = '上传仅在本地开发环境可用 (需启动 server.js)';
+    return;
+  }
+  var btn = document.getElementById('uploadSubmit');
+  btn.disabled = true;
+  document.getElementById('uploadStatus').textContent = '上传并构建中...';
+  try {
+    var res = await fetch('/api/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: btn.dataset.filename,
+        content: btn.dataset.content,
+        category: document.getElementById('uploadCategory').value
+      })
+    });
+    var data = await res.json();
+    if (data.success) {
+      document.getElementById('uploadStatus').textContent = '上传成功，正在刷新...';
+      btn.disabled = false;
+      setTimeout(function() { location.reload(); }, 1000);
+    } else {
+      document.getElementById('uploadStatus').textContent = '上传失败: ' + (data.error || '未知错误');
+      btn.disabled = false;
+    }
+  } catch(e) {
+    document.getElementById('uploadStatus').textContent = '上传失败: ' + e.message;
+    btn.disabled = false;
+  }
 }
 
 function openModal(path, title) {
@@ -275,7 +461,27 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeModal(); closeUpload(); } });
+
+// Upload zone event wiring
+(function() {
+  var zone = document.getElementById('uploadZone');
+  var input = document.getElementById('uploadFileInput');
+  if (zone && input) {
+    zone.addEventListener('click', function() { input.click(); });
+    zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', function() { zone.classList.remove('dragover'); });
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      zone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handleUploadFile(e.dataTransfer.files[0]);
+    });
+    input.addEventListener('change', function() {
+      if (input.files[0]) handleUploadFile(input.files[0]);
+    });
+  }
+})();
+
 loadCharts();
 </script>
 </body>
