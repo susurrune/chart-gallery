@@ -10,6 +10,8 @@
 <style>
 :root {
   --bg: #0a0a0e;
+  --navbar-bg: rgba(10,10,14,.94);
+  --overlay: rgba(10,10,14,.96);
   --surface: #111117;
   --surface2: #18181f;
   --ink: #f0ede8;
@@ -18,22 +20,38 @@
   --accent: #e06030;
   --accent-glow: rgba(224,96,48,.15);
   --line: #1e1e2a;
+  --grid-color: rgba(255,255,255,.007);
+}
+[data-theme="light"] {
+  --bg: #f5f2ed;
+  --navbar-bg: rgba(245,242,237,.94);
+  --overlay: rgba(245,242,237,.96);
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --ink: #1a1816;
+  --ink2: #6b6560;
+  --ink3: #b0aca5;
+  --accent: #c84e20;
+  --accent-glow: rgba(200,78,32,.1);
+  --line: #e2ddd6;
+  --grid-color: rgba(0,0,0,.04);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: 'JetBrains Mono','SF Mono','Cascadia Code',monospace;
   background: var(--bg);
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E"),
-    repeating-linear-gradient(transparent,transparent 1px,rgba(255,255,255,.007) 1px,rgba(255,255,255,.007) 2px);
+    repeating-linear-gradient(transparent,transparent 1px,var(--grid-color) 1px,var(--grid-color) 2px);
   background-size: 200px 200px, 100% 1px;
   color: var(--ink);
   min-height: 100vh;
   line-height: 1.5;
+  transition: background .3s, color .3s;
 }
 /* navbar */
 .navbar {
   display:flex;align-items:center;justify-content:space-between;
-  padding:12px 32px;background:rgba(10,10,14,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  padding:12px 32px;background:var(--navbar-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line);position:sticky;top:0;z-index:100;gap:14px;
 }
 .nav-left{display:flex;align-items:center;gap:10px;flex-shrink:0;}
@@ -87,6 +105,9 @@ body {
 .upload-submit{background:var(--accent);color:#fff;border:none;padding:12px 0;font-family:inherit;font-size:11px;cursor:pointer;font-weight:600;text-transform:uppercase;letter-spacing:.5px;transition:background .15s;margin-top:auto;}
 .upload-submit:hover{background:#c8522a;}
 .upload-submit:disabled{opacity:.4;cursor:not-allowed;}
+/* theme toggle */
+.theme-btn{flex-shrink:0;width:32px;height:32px;background:var(--surface);border:1px solid var(--line);color:var(--ink2);cursor:pointer;display:grid;place-items:center;font-size:13px;transition:all .15s;line-height:1;}
+.theme-btn:hover{border-color:var(--ink3);color:var(--ink);}
 /* grid */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(370px,1fr));gap:18px;}
 /* card */
@@ -108,7 +129,7 @@ body {
 .btn-o{background:var(--surface2);color:var(--ink2);}
 .btn-o:hover{background:var(--line);color:var(--ink);}
 /* modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,10,14,.96);z-index:1000;padding:20px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:var(--overlay);z-index:1000;padding:20px;}
 .modal-overlay.open{display:flex;flex-direction:column;animation:fIn .2s ease;}
 @keyframes fIn{from{opacity:0}to{opacity:1}}
 .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding:0 4px;}
@@ -141,6 +162,7 @@ body {
   .modal-actions{padding:10px 14px;margin-top:0;}
   .modal-actions a{flex:1;text-align:center;padding:12px 16px;font-size:12px;}
   .upload-btn{width:100%;text-align:center;}
+  .theme-btn{width:38px;height:38px;}
   .upload-body{padding:16px 18px;}
   .upload-zone{padding:32px 16px;}
 }
@@ -148,6 +170,7 @@ body {
   .nav-left h1{font-size:14px;}
   .logo-mark{width:26px;height:26px;font-size:14px;}
   .upload-btn{font-size:9px;padding:7px 12px;}
+  .theme-btn{width:30px;height:30px;font-size:11px;}
   .nav-badge{font-size:9px;padding:5px 9px;}
   .stat-card .num{font-size:22px;}
   .stat-card .lbl{font-size:9px;}
@@ -169,6 +192,7 @@ body {
   <div class="nav-right">
     <input type="text" id="searchInput" placeholder="搜索 · 标题 / 描述 / 标签" oninput="render()">
     <button class="upload-btn" id="uploadBtn" onclick="openUpload()">+ 上传</button>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">○</button>
     <span class="nav-badge" id="totalCount">0 图表</span>
   </div>
 </div>
@@ -239,6 +263,25 @@ try {
   const raw = document.getElementById('chartsData').textContent;
   if (raw && raw !== '__CHARTS_DATA__') charts = JSON.parse(raw);
 } catch(e) {}
+
+// Theme init
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  var b = document.getElementById('themeBtn');
+  if (b) b.textContent = t === 'dark' ? '明' : '暗';
+})();
+
+function toggleTheme() {
+  var h = document.documentElement;
+  var c = h.getAttribute('data-theme');
+  var n = c === 'dark' ? 'light' : 'dark';
+  h.setAttribute('data-theme', n);
+  localStorage.setItem('theme', n);
+  var b = document.getElementById('themeBtn');
+  if (b) b.textContent = n === 'dark' ? '明' : '暗';
+}
 
 async function loadCharts() {
   if (charts.length > 0) { render(); renderCats(); renderTimePills(); return; }
