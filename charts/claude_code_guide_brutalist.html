@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta name="chart-category" content="ai">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code CLI 完全指南 2026</title>
+  <meta name="description" content="Anthropic 官方终端工具终极教程">
+
+  <!--
+    Design Direction: Neo-brutalist Terminal × Swiss Grid
+    - 主色：终端黑 #0D0D0D / 荧光青绿 #00FF9F（强对比强调色）
+    - 次强调：电子蓝 #00D4FF
+    - 字体：标题 Syne 900（几何 brutalist），正文 Space Grotesk，代码 Space Mono
+    - 布局：全宽不对称，左侧导航栏固定，内容区偏移，大号章节号溢出边界
+    - 装饰：超大空心数字、锐角卡片（无圆角）、终端光标动画
+    - 禁用：紫色、圆角、居中对称、渐变按钮
+  -->
+
+  <!-- Fonts: 国内可用 CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/syne@5.0.0/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.0.0/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/space-mono@5.0.0/index.css">
+
+  <style>
+    :root {
+      --bg: #0D0D0D;
+      --surface: #111111;
+      --surface-2: #1A1A1A;
+      --border: #00FF9F;
+      --border-muted: #333333;
+      --ink: #FFFFFF;
+      --ink-soft: #CCCCCC;
+      --ink-muted: #888888;
+      --accent: #00FF9F;        /* 荧光青绿 - 主强调，仅用于 5-10% 面积 */
+      --accent-blue: #00D4FF;  /* 电子蓝 - 次强调 */
+      --accent-warn: #FF3366;  /* 红色警示 */
+      --code-bg: #000000;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Space Grotesk', monospace;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.65;
+      font-size: 16px;
+    }
+
+    /* 背景纹理：CRT 扫描线 + 点阵 */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          rgba(0, 255, 159, 0.03) 0px,
+          transparent 1px,
+          transparent 3px
+        ),
+        radial-gradient(circle at 1px 1px, rgba(0, 255, 159, 0.08) 1px, transparent 0);
+      background-size: 100% 100%, 32px 32px;
+    }
+
+    /* Typography: 强对比 */
+    h1, h2, h3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+    }
+
+    h1 {
+      font-size: clamp(4rem, 12vw, 10rem);
+      text-transform: uppercase;
+    }
+
+    h2 {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      color: var(--ink-soft);
+      max-width: 58ch;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 1px;
+    }
+
+    a:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    code {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.875em;
+      background: var(--code-bg);
+      padding: 0.15em 0.4em;
+      border: 1px solid var(--border-muted);
+      color: var(--accent);
+    }
+
+    /* Layout: 全宽不对称 */
+    .nav {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 60px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 0;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: 'Syne', sans-serif;
+      font-weight: 900;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .nav-item {
+      width: 40px;
+      height: 40px;
+      border: 1px solid transparent;
+      color: var(--ink-muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-item:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .nav-item.active {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    /* Hero: 全宽打破边界 */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 4rem 8rem 4rem 100px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .hero h1 {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .hero h1 .outline {
+      color: transparent;
+      -webkit-text-stroke: 2px var(--accent);
+      display: block;
+    }
+
+    .hero h1 .filled {
+      color: var(--ink);
+      display: block;
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--ink-soft);
+      max-width: 500px;
+      margin-bottom: 3rem;
+      border-left: 3px solid var(--accent);
+      padding-left: 1.5rem;
+    }
+
+    .hero-meta {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 2rem;
+    }
+
+    .hero-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .hero-meta span::before {
+      content: '>';
+      color: var(--accent);
+    }
+
+    /* 按钮无圆角，锐角 brutalist */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 2rem;
+      border: 2px solid var(--accent);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: transparent;
+      color: var(--accent);
+    }
+
+    .btn:hover {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn-filled {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn-filled:hover {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    /* 超大章节号溢出边界 */
+    .section-number {
+      position: absolute;
+      left: 80px;
+      top: -0.2em;
+      font-family: 'Syne', sans-serif;
+      font-size: 12rem;
+      font-weight: 900;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--border-muted);
+      z-index: 0;
+      line-height: 1;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    /* 内容区偏移 */
+    main {
+      padding-left: 100px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section {
+      padding: 6rem 8rem;
+      position: relative;
+      border-top: 1px solid var(--border-muted);
+      overflow: hidden;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+      margin-bottom: 3rem;
+      position: relative;
+    }
+
+    .section-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--accent);
+      background: transparent;
+    }
+
+    /* 卡片无圆角 */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 0;
+      margin: 2rem 0;
+    }
+
+    .card {
+      border: 1px solid var(--border-muted);
+      padding: 1.5rem;
+      transition: all 0.15s;
+      position: relative;
+    }
+
+    .card:hover {
+      border-color: var(--accent);
+    }
+
+    .card:hover::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent);
+    }
+
+    .card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .card-title::before {
+      content: '//';
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+    }
+
+    /* 代码块 */
+    .code-block {
+      border: 1px solid var(--border-muted);
+      margin: 1.5rem 0;
+      position: relative;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    .code-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+    }
+
+    .code-copy {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--ink-muted);
+      border: 1px solid var(--border-muted);
+      padding: 0.25rem 0.5rem;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .code-copy:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .code-content {
+      padding: 1rem 1.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.8;
+      background: var(--code-bg);
+      overflow-x: auto;
+    }
+
+    .code-content pre {
+      white-space: pre;
+    }
+
+    /* 语法高亮 */
+    .kw { color: var(--accent-blue); }
+    .str { color: var(--accent); }
+    .num { color: #FF9F43; }
+    .cmt { color: var(--ink-muted); }
+    .fn { color: #FF3366; }
+
+    /* 步骤列表 */
+    .steps {
+      margin: 2rem 0;
+      counter-reset: step;
+    }
+
+    .step {
+      counter-increment: step;
+      padding: 1.5rem;
+      padding-left: 5rem;
+      position: relative;
+      border-left: 1px solid var(--border-muted);
+      margin-bottom: 0;
+    }
+
+    .step::before {
+      content: counter(step, decimal-leading-zero);
+      position: absolute;
+      left: 1rem;
+      top: 1.5rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .step-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .step p {
+      font-size: 0.9rem;
+    }
+
+    /* 表格 */
+    .table-wrap {
+      overflow-x: auto;
+      margin: 2rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 1rem;
+      border: 1px solid var(--border-muted);
+      text-align: left;
+    }
+
+    th {
+      background: var(--surface);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    td {
+      font-size: 0.9rem;
+      color: var(--ink-soft);
+    }
+
+    td:hover {
+      background: var(--surface);
+    }
+
+    /* 提示框 */
+    .callout {
+      padding: 1.25rem 1.5rem;
+      border-left: 4px solid var(--accent);
+      margin: 2rem 0;
+      background: var(--surface);
+    }
+
+    .callout-warn {
+      border-left-color: var(--accent-warn);
+    }
+
+    .callout-tip {
+      border-left-color: var(--accent-blue);
+    }
+
+    .callout-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    .callout-warn .callout-label { color: var(--accent-warn); }
+    .callout-tip .callout-label { color: var(--accent-blue); }
+
+    /* 快捷键 */
+    .kbd {
+      display: inline-block;
+      padding: 0.2em 0.5em;
+      border: 1px solid var(--ink-muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85em;
+      color: var(--ink);
+      background: var(--surface);
+    }
+
+    /* 光标动画 */
+    .cursor {
+      display: inline-block;
+      width: 12px;
+      height: 1.2em;
+      background: var(--accent);
+      animation: blink 1s step-end infinite;
+      margin-left: 2px;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* 列表 */
+    .feature-list {
+      list-style: none;
+      margin: 1.5rem 0;
+    }
+
+    .feature-list li {
+      padding: 0.5rem 0;
+      padding-left: 2rem;
+      position: relative;
+      color: var(--ink-soft);
+    }
+
+    .feature-list li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 4rem 8rem 4rem 100px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+    }
+
+    .footer-left {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--ink-muted);
+    }
+
+    .footer-right {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-right a {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      border-bottom: none;
+    }
+
+    /* 入场动画编排 */
+    .section {
+      opacity: 0;
+      transform: translateY(60px);
+      transition: opacity 0.5s, transform 0.5s;
+    }
+
+    .section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .nav {
+        width: 50px;
+      }
+
+      .hero, .section, .footer {
+        padding-left: 80px;
+        padding-right: 2rem;
+      }
+
+      .section-number {
+        left: 60px;
+        font-size: 8rem;
+      }
+
+      main {
+        padding-left: 80px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .nav {
+        width: 100%;
+        height: 50px;
+        bottom: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        flex-direction: row;
+        justify-content: center;
+        padding: 0.5rem;
+      }
+
+      .nav-logo {
+        margin-right: 1rem;
+        margin-bottom: 0;
+        width: 28px;
+        height: 28px;
+      }
+
+      .nav-item {
+        width: 32px;
+        height: 32px;
+        margin-right: 0.5rem;
+        margin-bottom: 0;
+      }
+
+      .hero, .section, .footer {
+        padding: 2rem 1.5rem;
+        padding-top: 5rem;
+      }
+
+      .section-number {
+        display: none;
+      }
+
+      main {
+        padding-left: 0;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.5rem, 10vw, 4rem);
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer {
+        flex-direction: column;
+        gap: 1.5rem;
+        text-align: center;
+      }
+    }
+
+    /* prefers-reduced-motion */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 左侧导航 -->
+  <nav class="nav">
+    <div class="nav-logo">C</div>
+    <div class="nav-item active" onclick="goSection('hero')">01</div>
+    <div class="nav-item" onclick="goSection('install')">02</div>
+    <div class="nav-item" onclick="goSection('core')">03</div>
+    <div class="nav-item" onclick="goSection('commands')">04</div>
+    <div class="nav-item" onclick="goSection('mcp')">05</div>
+    <div class="nav-item" onclick="goSection('hooks')">06</div>
+    <div class="nav-item" onclick="goSection('ide')">07</div>
+    <div class="nav-item" onclick="goSection('keys')">08</div>
+    <div class="nav-item" onclick="goSection('best')">09</div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <span class="section-number">01</span>
+    <div class="hero-content">
+      <div class="hero-meta">
+        <span>v2.1.119</span>
+        <span>2026 最新版</span>
+        <span>PRODUCTION</span>
+      </div>
+      <h1>
+        <span class="outline">Claude Code</span>
+        <span class="filled">CLI Guide<span class="cursor"></span></span>
+      </h1>
+      <p class="hero-desc">Anthropic 官方终端工具的终极专业教程。从零基础到高级定制，掌握 AI 编程助手的全部能力。</p>
+      <div style="display: flex; gap: 1rem;">
+        <a href="#install" class="btn btn-filled">START →</a>
+        <a href="https://claude.ai/code" target="_blank" class="btn">官方文档</a>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <!-- Section 02: Install -->
+    <section class="section" id="install">
+      <span class="section-number">02</span>
+      <div class="section-header">
+        <span class="section-tag">SETUP</span>
+        <h2>安装与配置</h2>
+      </div>
+      <p style="margin-bottom: 2rem;">Claude Code 是 Anthropic 推出的官方命令行工具，支持 macOS、Windows 和 Linux。</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">terminal</span>
+          <button class="code-copy" onclick="copyCode(this)">[COPY]</button>
+        </div>
+        <div class="code-content">
+<pre><span class="cmt"># macOS / Linux</span>
+<span class="kw">curl</span> https://claude.ai/install.sh <span class="kw">| sh</span>
+
+<span class="cmt"># Windows PowerShell</span>
+<span class="kw">irm</span> https://claude.ai/install.ps1 <span class="kw">| iex</span>
+
+<span class="cmt"># npm 全局安装</span>
+<span class="kw">npm</span> install -g @anthropic-ai/claude-code
+
+<span class="cmt"># 验证</span>
+<span class="kw">claude</span> --version</pre>
+        </div>
+      </div>
+
+      <h3>初始化流程</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-title">设置 API Key</div>
+          <p>首次运行提示输入 Anthropic API Key，或预设环境变量 <code>ANTHROPIC_API_KEY</code></p>
+        </div>
+        <div class="step">
+          <div class="step-title">选择权限模式</div>
+          <p><code>accept-all</code> 自动批准 / <code>plan</code> 先规划 / <code>default</code> 逐项确认</p>
+        </div>
+        <div class="step">
+          <div class="step-title">初始化项目</div>
+          <p>运行 <code>/init</code> 创建 <code>CLAUDE.md</code> 让 Claude 了解项目结构</p>
+        </div>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">TIP</div>
+        <p>使用 <code>claude config</code> 进入交互式配置界面，可视化设置所有选项。</p>
+      </div>
+
+      <h3 style="margin-top: 2rem;">配置文件位置</h3>
+      <div class="table-wrap">
+        <table>
+          <tr><th>类型</th><th>路径</th><th>作用域</th></tr>
+          <tr><td>全局设置</td><td><code>~/.claude/settings.json</code></td><td>所有项目</td></tr>
+          <tr><td>本地设置</td><td><code>.claude/settings.local.json</code></td><td>当前项目</td></tr>
+          <tr><td>项目说明</td><td><code>CLAUDE.md</code></td><td>当前项目</td></tr>
+          <tr><td>MCP 配置</td><td><code>~/.claude/.mcp.json</code></td><td>全局 MCP</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 03: Core -->
+    <section class="section" id="core">
+      <span class="section-number">03</span>
+      <div class="section-header">
+        <span class="section-tag">FEATURES</span>
+        <h2>核心功能</h2>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">智能对话</div>
+          <p>自然语言交互，多轮对话，上下文记忆，代码解释与生成</p>
+        </div>
+        <div class="card">
+          <div class="card-title">工具系统</div>
+          <p>Read / Write / Edit / Bash / Grep / Glob / Agent，可扩展 MCP</p>
+        </div>
+        <div class="card">
+          <div class="card-title">权限控制</div>
+          <p>细粒度权限管理，工具/路径/命令白名单配置</p>
+        </div>
+        <div class="card">
+          <div class="card-title">上下文管理</div>
+          <p>自动压缩历史、记忆系统、Task 追踪</p>
+        </div>
+      </div>
+
+      <h3>内置工具</h3>
+      <ul class="feature-list">
+        <li><code>Read</code> — 读取文件，支持图片/PDF/Jupyter</li>
+        <li><code>Write</code> — 创建或覆写文件</li>
+        <li><code>Edit</code> — 精确字符串替换</li>
+        <li><code>Glob</code> — 模式匹配文件搜索</li>
+        <li><code>Grep</code> — 内容搜索 (ripgrep)</li>
+        <li><code>Bash</code> — 执行 shell 命令</li>
+        <li><code>Agent</code> — 启动子代理处理复杂任务</li>
+        <li><code>WebFetch/WebSearch</code> — 网络访问</li>
+      </ul>
+
+      <h3 style="margin-top: 2rem;">权限模式</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">terminal</span>
+          <button class="code-copy" onclick="copyCode(this)">[COPY]</button>
+        </div>
+        <div class="code-content">
+<pre><span class="cmt"># 启动时指定权限模式</span>
+<span class="kw">claude</span> --permission-mode accept-all
+<span class="kw">claude</span> --permission-mode plan
+<span class="kw">claude</span> --permission-mode default
+
+<span class="cmt"># 预设允许的工具</span>
+<span class="kw">claude</span> config add-permission <span class="str">"Read(*)"</span>
+<span class="kw">claude</span> config add-permission <span class="str">"Bash(git:*)"</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 04: Commands -->
+    <section class="section" id="commands">
+      <span class="section-number">04</span>
+      <div class="section-header">
+        <span class="section-tag">CLI</span>
+        <h2>斜杠命令</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <tr><th>命令</th><th>功能</th></tr>
+          <tr><td><code>/help</code></td><td>帮助信息</td></tr>
+          <tr><td><code>/init</code></td><td>创建 CLAUDE.md</td></tr>
+          <tr><td><code>/config</code></td><td>交互式配置</td></tr>
+          <tr><td><code>/clear</code></td><td>清空对话</td></tr>
+          <tr><td><code>/compact</code></td><td>压缩历史</td></tr>
+          <tr><td><code>/review</code></td><td>PR 代码审查</td></tr>
+          <tr><td><code>/mcp</code></td><td>MCP 管理</td></tr>
+          <tr><td><code>/cost</code></td><td>成本统计</td></tr>
+          <tr><td><code>/model</code></td><td>切换模型 Opus/Sonnet/Haiku</td></tr>
+          <tr><td><code>/fast</code></td><td>快速模式</td></tr>
+          <tr><td><code>/vim</code></td><td>Vim 键绑定</td></tr>
+          <tr><td><code>/doctor</code></td><td>诊断检查</td></tr>
+        </table>
+      </div>
+
+      <h3>Skills 技能系统</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">skills</span>
+          <button class="code-copy" onclick="copyCode(this)">[COPY]</button>
+        </div>
+        <div class="code-content">
+<pre><span class="cmt"># 内置 Skills</span>
+/init              <span class="cmt"># 初始化项目</span>
+/review            <span class="cmt"># PR 审查</span>
+/security-review   <span class="cmt"># 安全审查</span>
+/update-config     <span class="cmt"># 配置 settings</span>
+/loop              <span class="cmt"># 循环执行</span>
+
+<span class="cmt"># 用户自定义</span>
+/beautiful-webpage <span class="cmt"># 制作精美网页</span>
+/web-game          <span class="cmt"># 制作网页游戏</span></pre>
+        </div>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">自定义</div>
+        <p>将 Skill 放入 <code>~/.claude/skills/&lt;name&gt;/SKILL.md</code> 即可自动加载。</p>
+      </div>
+    </section>
+
+    <!-- Section 05: MCP -->
+    <section class="section" id="mcp">
+      <span class="section-number">05</span>
+      <div class="section-header">
+        <span class="section-tag">EXTEND</span>
+        <h2>MCP 服务器</h2>
+      </div>
+
+      <p>MCP (Model Context Protocol) 是 Anthropic 推出的扩展协议，连接外部工具和数据源。</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">~/.claude/.mcp.json</span>
+          <button class="code-copy" onclick="copyCode(this)">[COPY]</button>
+        </div>
+        <div class="code-content">
+<pre>{
+  <span class="str">"mcpServers"</span>: {
+    <span class="str">"filesystem"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@anthropic-ai/mcp-server-filesystem"</span>, <span class="str">"/path"</span>]
+    },
+    <span class="str">"github"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@anthropic-ai/mcp-server-github"</span>],
+      <span class="str">"env"</span>: { <span class="str">"GITHUB_TOKEN"</span>: <span class="str">"xxx"</span> }
+    },
+    <span class="str">"postgres"</span>: {
+      <span class="str">"command"</span>: <span class="str">"npx"</span>,
+      <span class="str">"args"</span>: [<span class="str">"-y"</span>, <span class="str">"@anthropic-ai/mcp-server-postgres"</span>]
+    }
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">filesystem</div>
+          <p>文件系统访问，配置允许目录</p>
+        </div>
+        <div class="card">
+          <div class="card-title">github</div>
+          <p>GitHub API，仓库/PR/Issues</p>
+        </div>
+        <div class="card">
+          <div class="card-title">postgres</div>
+          <p>PostgreSQL 数据库查询</p>
+        </div>
+        <div class="card">
+          <div class="card-title">browser</div>
+          <p>浏览器自动化，网页抓取</p>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">安全</div>
+        <p>MCP 服务器可访问外部资源，只添加可信来源。</p>
+      </div>
+    </section>
+
+    <!-- Section 06: Hooks -->
+    <section class="section" id="hooks">
+      <span class="section-number">06</span>
+      <div class="section-header">
+        <span class="section-tag">AUTOMATE</span>
+        <h2>Hooks 配置</h2>
+      </div>
+
+      <p>Hooks 是事件钩子系统，在特定事件发生时自动执行脚本。</p>
+
+      <div class="table-wrap">
+        <table>
+          <tr><th>事件</th><th>触发时机</th><th>用途</th></tr>
+          <tr><td><code>PreToolUse</code></td><td>工具执行前</td><td>拦截、修改参数</td></tr>
+          <tr><td><code>PostToolUse</code></td><td>工具执行后</td><td>处理结果、触发动作</td></tr>
+          <tr><td><code>Notification</code></td><td>通知事件</td><td>自定义通知方式</td></tr>
+          <tr><td><code>Stop</code></td><td>会话结束</td><td>清理、保存状态</td></tr>
+          <tr><td><code>PrePrompt</code></td><td>用户提交前</td><td>修改 prompt</td></tr>
+        </table>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">settings.json</span>
+          <button class="code-copy" onclick="copyCode(this)">[COPY]</button>
+        </div>
+        <div class="code-content">
+<pre>{
+  <span class="str">"hooks"</span>: {
+    <span class="str">"PostToolUse"</span>: [{
+      <span class="str">"matcher"</span>: <span class="str">"Write"</span>,
+      <span class="str">"hooks"</span>: [{
+        <span class="str">"type"</span>: <span class="str">"command"</span>,
+        <span class="str">"command"</span>: <span class="str">"git add $TOOL_INPUT_FILE_PATH"</span>
+      }]
+    }]
+  }
+}</pre>
+        </div>
+      </div>
+
+      <h3>环境变量</h3>
+      <ul class="feature-list">
+        <li><code>$TOOL_NAME</code> — 工具名称</li>
+        <li><code>$TOOL_INPUT</code> — 输入参数 JSON</li>
+        <li><code>$TOOL_OUTPUT</code> — 输出结果</li>
+        <li><code>$TOOL_INPUT_FILE_PATH</code> — 文件路径</li>
+        <li><code>$SESSION_ID</code> — 会话 ID</li>
+      </ul>
+    </section>
+
+    <!-- Section 07: IDE -->
+    <section class="section" id="ide">
+      <span class="section-number">07</span>
+      <div class="section-header">
+        <span class="section-tag">INTEGRATE</span>
+        <h2>IDE 集成</h2>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">VS Code</div>
+          <p>官方扩展，面板集成，代码补全，<kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">C</kbd> 打开</p>
+        </div>
+        <div class="card">
+          <div class="card-title">JetBrains</div>
+          <p>IntelliJ IDEA / PyCharm / WebStorm 支持</p>
+        </div>
+        <div class="card">
+          <div class="card-title">桌面应用</div>
+          <p>独立 GUI，macOS / Windows 可用</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Web App</div>
+          <p>claude.ai/code 网页版</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">terminal</span>
+          <button class="code-copy" onclick="copyCode(this)">[COPY]</button>
+        </div>
+        <div class="code-content">
+<pre><span class="cmt"># VS Code 扩展</span>
+<span class="kw">code</span> --install-extension anthropic.claude-code
+
+<span class="cmt"># Terminal 集成</span>
+<span class="kw">claude</span> /terminal-setup
+
+<span class="cmt"># 或手动添加到 shell</span>
+<span class="kw">eval</span> <span class="str">"$(claude shell-hook bash)"</span>
+<span class="kw">eval</span> <span class="str">"$(claude shell-hook zsh)"</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 08: Keys -->
+    <section class="section" id="keys">
+      <span class="section-number">08</span>
+      <div class="section-header">
+        <span class="section-tag">NAVIGATE</span>
+        <h2>键盘快捷键</h2>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <tr><th>快捷键</th><th>功能</th></tr>
+          <tr><td><kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Enter</kbd></td><td>提交消息</td></tr>
+          <tr><td><kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">Shift</kbd>+<kbd class="kbd">Enter</kbd></td><td>提交并继续</td></tr>
+          <tr><td><kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">C</kbd></td><td>中断响应</td></tr>
+          <tr><td><kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">D</kbd></td><td>退出会话</td></tr>
+          <tr><td><kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">L</kbd></td><td>清空对话</td></tr>
+          <tr><td><kbd class="kbd">Ctrl</kbd>+<kbd class="kbd">R</kbd></td><td>搜索历史</td></tr>
+          <tr><td><kbd class="kbd">Tab</kbd></td><td>补全命令</td></tr>
+          <tr><td><kbd class="kbd">↑</kbd> / <kbd class="kbd">↓</kbd></td><td>历史导航</td></tr>
+        </table>
+      </div>
+
+      <h3>Vim 模式</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">vim</span>
+          <button class="code-copy" onclick="copyCode(this)">[COPY]</button>
+        </div>
+        <div class="code-content">
+<pre><span class="cmt"># 启用</span>
+/vim
+
+<span class="cmt"># 键绑定</span>
+<span class="kw">i</span>     <span class="cmt"># 插入模式</span>
+<span class="kw">esc</span>   <span class="cmt"># 普通模式</span>
+<span class="kw">:</span>     <span class="cmt"># 命令模式</span>
+<span class="kw">dd</span>    <span class="cmt"># 删除行</span>
+<span class="kw">yy</span>    <span class="cmt"># 复制行</span>
+<span class="kw">w/b</span>   <span class="cmt"># 词移动</span></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 09: Best -->
+    <section class="section" id="best">
+      <span class="section-number">09</span>
+      <div class="section-header">
+        <span class="section-tag">MASTER</span>
+        <h2>最佳实践</h2>
+      </div>
+
+      <h3>CLAUDE.md 配置</h3>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-label">CLAUDE.md</span>
+          <button class="code-copy" onclick="copyCode(this)">[COPY]</button>
+        </div>
+        <div class="code-content">
+<pre><span class="cmt"># Project: My App</span>
+
+## 项目概述
+Next.js 14 + TypeScript + Tailwind 电商前端
+
+## 代码规范
+- 函数组件 + hooks
+- 文件命名: kebab-case
+- 组件命名: PascalCase
+
+## 重要文件
+- 入口: src/app/layout.tsx
+- API: src/app/api/
+
+## 禁止事项
+- 不修改 src/lib/auth.ts
+- 不删除 __tests__/ 目录
+
+## 工作流程
+- 提交前运行 npm run lint && npm test
+- PR 需关联 Linear issue</pre>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-title">分步指令</div>
+          <p>复杂任务拆分，便于中途检查调整</p>
+        </div>
+        <div class="card">
+          <div class="card-title">精确搜索</div>
+          <p>用 Glob/Grep 指定路径，提高准确度</p>
+        </div>
+        <div class="card">
+          <div class="card-title">上下文压缩</div>
+          <p>定期 /compact，避免 token 超限</p>
+        </div>
+        <div class="card">
+          <div class="card-title">权限预配置</div>
+          <p>预设常用工具权限，减少中断</p>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <div class="callout-label">安全提醒</div>
+        <p>不要让 Claude：修改生产配置、删除数据库、推送未测试代码、暴露 API Key。</p>
+      </div>
+
+      <div class="callout callout-tip">
+        <div class="callout-label">终极技巧</div>
+        <p>让 Claude Code 做它擅长的事——理解代码、生成代码、调试问题。决策和判断交给人类。</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-left">
+      Claude Code Guide 2026 // Anthropic CLI Tutorial
+    </div>
+    <div class="footer-right">
+      <a href="https://claude.ai/code">claude.ai/code</a>
+      <a href="https://docs.anthropic.com">API Docs</a>
+      <a href="https://github.com/anthropics">GitHub</a>
+    </div>
+  </footer>
+
+  <script>
+    function copyCode(btn) {
+      const code = btn.closest('.code-block').querySelector('.code-content pre').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        btn.textContent = '[DONE]';
+        setTimeout(() => btn.textContent = '[COPY]', 1500);
+      });
+    }
+
+    function goSection(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Section reveal
+    const sections = document.querySelectorAll('.section');
+    const navItems = document.querySelectorAll('.nav-item');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          const idx = Array.from(sections).indexOf(entry.target);
+          navItems.forEach((item, i) => item.classList.toggle('active', i === idx + 1));
+        }
+      });
+    }, { threshold: 0.3 });
+
+    sections.forEach(s => observer.observe(s));
+  </script>
+</body>
+</html>

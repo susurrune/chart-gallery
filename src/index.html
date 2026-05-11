@@ -387,6 +387,14 @@ function openUpload() {
   document.getElementById('uploadInfo').style.display = 'none';
   document.getElementById('uploadSubmit').style.display = 'none';
   document.getElementById('uploadStatus').textContent = '';
+  // Show production info if on GitHub Pages
+  var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!isLocal) {
+    var hasToken = !!localStorage.getItem('github_token');
+    document.getElementById('uploadStatus').innerHTML = hasToken
+      ? 'GitHub API 模式 (<a href="#" onclick="clearGitHubToken();return false" style="color:var(--accent)">更换 Token</a>)'
+      : '首次上传需配置 GitHub Token (<a href="https://github.com/settings/tokens" target="_blank" style="color:var(--accent)">生成</a>)';
+  }
   document.body.style.overflow = 'hidden';
 }
 
@@ -414,25 +422,28 @@ function handleUploadFile(file) {
   reader.readAsDataURL(file);
 }
 
-async function submitUpload() {
-  if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-    document.getElementById('uploadStatus').textContent = '上传仅在本地开发环境可用 (需启动 server.js)';
-    return;
+function submitUpload() {
+  var isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (isLocal) {
+    submitUploadLocal();
+  } else {
+    submitUploadGitHub();
   }
+}
+
+function submitUploadLocal() {
   var btn = document.getElementById('uploadSubmit');
   btn.disabled = true;
   document.getElementById('uploadStatus').textContent = '上传并构建中...';
-  try {
-    var res = await fetch('/api/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        filename: btn.dataset.filename,
-        content: btn.dataset.content,
-        category: document.getElementById('uploadCategory').value
-      })
-    });
-    var data = await res.json();
+  fetch('/api/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      filename: btn.dataset.filename,
+      content: btn.dataset.content,
+      category: document.getElementById('uploadCategory').value
+    })
+  }).then(function(res) { return res.json(); }).then(function(data) {
     if (data.success) {
       document.getElementById('uploadStatus').textContent = '上传成功，正在刷新...';
       btn.disabled = false;
@@ -441,9 +452,88 @@ async function submitUpload() {
       document.getElementById('uploadStatus').textContent = '上传失败: ' + (data.error || '未知错误');
       btn.disabled = false;
     }
-  } catch(e) {
+  }).catch(function(e) {
     document.getElementById('uploadStatus').textContent = '上传失败: ' + e.message;
     btn.disabled = false;
+  });
+}
+
+function submitUploadGitHub() {
+  var btn = document.getElementById('uploadSubmit');
+  var status = document.getElementById('uploadStatus');
+  var filename = btn.dataset.filename;
+  var content = btn.dataset.content;
+  var category = document.getElementById('uploadCategory').value;
+
+  var token = localStorage.getItem('github_token');
+  if (!token) {
+    token = prompt('输入 GitHub Personal Access Token (需 public_repo 权限)\n可在 github.com/settings/tokens 生成');
+    if (!token) return;
+    localStorage.setItem('github_token', token);
+  }
+
+  btn.disabled = true;
+  status.textContent = '提交到 GitHub...';
+
+  // Inject category meta if specified
+  if (category) {
+    try {
+      var decoded = decodeURIComponent(escape(atob(content)));
+      if (!decoded.includes('chart-category')) {
+        decoded = decoded.replace('<head>', '<head>\n<meta name="chart-category" content="' + category + '">');
+        content = btoa(unescape(encodeURIComponent(decoded)));
+      }
+    } catch(e) {}
+  }
+
+  // Derive owner/repo from page URL
+  var pathParts = location.pathname.replace(/\/+$/, '').split('/');
+  var repoName = pathParts[pathParts.length - 1] || 'chart-gallery';
+  var owner = location.hostname.split('.')[0];
+  var apiPath = 'repos/' + owner + '/' + repoName + '/contents/charts/' + filename;
+
+  // Check if file exists to get SHA
+  fetch('https://api.github.com/' + apiPath, {
+    headers: { 'Authorization': 'token ' + token }
+  }).then(function(res) {
+    if (res.status === 401) {
+      localStorage.removeItem('github_token');
+      throw new Error('Token 无效，已清除，请重试');
+    }
+    return res.status === 200 ? res.json() : null;
+  }).then(function(existing) {
+    var body = {
+      message: 'Upload ' + filename + ' via gallery',
+      content: content,
+      branch: 'main'
+    };
+    if (existing && existing.sha) body.sha = existing.sha;
+
+    return fetch('https://api.github.com/' + apiPath, {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'token ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+  }).then(function(res) {
+    if (!res.ok) return res.json().then(function(e) { throw new Error(e.message); });
+    return res.json();
+  }).then(function() {
+    status.textContent = '已提交到 GitHub，Actions 自动部署中 (约1-2分钟)';
+    btn.disabled = false;
+    setTimeout(function() { location.reload(); }, 3000);
+  }).catch(function(e) {
+    status.textContent = 'GitHub API 错误: ' + e.message;
+    btn.disabled = false;
+  });
+}
+
+function clearGitHubToken() {
+  if (confirm('清除已保存的 GitHub Token？')) {
+    localStorage.removeItem('github_token');
+    document.getElementById('uploadStatus').textContent = 'Token 已清除';
   }
 }
 
