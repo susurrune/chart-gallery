@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电脑还能这么用？</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;600;700&family=Poiret+One&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #f7f5f0;
+  --bg2: #efede7;
+  --bg3: #e6e3dc;
+  --text: #1a1816;
+  --text-dim: #6b6762;
+  --text-muted: #9e9a94;
+  --accent: #c62424;
+  --accent-dim: #d47a6a;
+  --gold: #b89448;
+  --gold-dim: #c8a868;
+  --border: #e2dfda;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Outfit', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Poiret One', cursive;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* subtle grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  pointer-events: none;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 28px 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+nav .logo {
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+nav .logo span { color: var(--accent); }
+nav .nav-links { display: flex; gap: 32px; }
+nav .nav-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 400;
+  transition: color 0.3s;
+  position: relative;
+}
+nav .nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+nav .nav-links a:hover { color: var(--text); }
+nav .nav-links a:hover::after { width: 100%; }
+nav.scrolled {
+  background: rgba(247, 245, 240, 0.85);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-bottom: 1px solid rgba(226, 223, 218, 0.6);
+}
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 80px 48px;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 35%, rgba(198,36,36,0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 25% 65%, rgba(184,148,72,0.04) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 75% 60%, rgba(198,36,36,0.02) 0%, transparent 50%);
+  z-index: 0;
+}
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.04;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+.hero-decor-line {
+  position: absolute;
+  width: 1px;
+  height: 40vh;
+  background: linear-gradient(to bottom, transparent, var(--accent-dim), transparent);
+  left: 50%;
+  top: 0;
+  opacity: 0.12;
+}
+.hero-decor-line-r {
+  position: absolute;
+  width: 1px;
+  height: 30vh;
+  background: linear-gradient(to bottom, transparent, var(--gold-dim), transparent);
+  right: 15%;
+  bottom: 20%;
+  opacity: 0.08;
+}
+.hero .label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
+}
+.hero .label::before,
+.hero .label::after {
+  content: '';
+  display: inline-block;
+  width: 40px;
+  height: 1px;
+  background: var(--accent-dim);
+  vertical-align: middle;
+  margin: 0 16px;
+  opacity: 0.3;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(56px, 10vw, 140px);
+  font-weight: 400;
+  letter-spacing: 12px;
+  line-height: 1.1;
+  color: var(--text);
+  position: relative;
+  z-index: 1;
+  margin-bottom: 28px;
+}
+.hero h1 .highlight {
+  color: var(--accent);
+  font-style: italic;
+  font-family: var(--font-serif);
+  font-size: 0.9em;
+  letter-spacing: 2px;
+}
+.hero p {
+  font-size: 20px;
+  color: var(--text-dim);
+  max-width: 680px;
+  position: relative;
+  z-index: 1;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  line-height: 1.9;
+}
+.scroll-indicator {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+.scroll-indicator .line {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(to bottom, var(--text-muted), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+section {
+  padding: 120px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.section-header { margin-bottom: 72px; }
+.section-header .number {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+  letter-spacing: 3px;
+  margin-bottom: 12px;
+  display: block;
+}
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: clamp(36px, 4vw, 56px);
+  font-weight: 400;
+  letter-spacing: 6px;
+  color: var(--text);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.section-header .rule {
+  width: 60px;
+  height: 1px;
+  background: var(--accent-dim);
+  margin-top: 20px;
+}
+
+.intro {
+  padding-top: 0;
+  margin-top: -40px;
+  position: relative;
+  z-index: 2;
+}
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+.intro-text p {
+  font-size: 17px;
+  color: var(--text-dim);
+  line-height: 2;
+  margin-bottom: 22px;
+}
+.intro-text .pull-quote {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.5;
+  padding: 32px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin: 32px 0;
+}
+.intro-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.intro-stats .stat {
+  background: var(--bg2);
+  padding: 36px 28px;
+  text-align: center;
+}
+.intro-stats .stat .num {
+  font-family: var(--font-display);
+  font-size: 40px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.intro-stats .stat .desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.card {
+  background: var(--bg);
+  padding: 52px 44px;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.4s;
+  cursor: default;
+}
+.card:hover { background: var(--bg2); }
+.card .card-number {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+.card .card-icon {
+  margin-bottom: 20px;
+  display: block;
+  line-height: 1;
+}
+.card .card-icon svg {
+  width: 34px;
+  height: 34px;
+  stroke: var(--text-dim);
+  stroke-width: 1.4;
+  fill: none;
+}
+.card h3 {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 14px;
+  line-height: 1.3;
+}
+.card p {
+  font-size: 16px;
+  color: var(--text-dim);
+  line-height: 1.9;
+  font-weight: 300;
+  margin-bottom: 10px;
+}
+.card .tool-list {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  font-weight: 300;
+  margin-top: 6px;
+}
+.card .tool-list code {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  background: var(--bg2);
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  color: var(--accent);
+}
+.card .tag {
+  display: inline-block;
+  margin-top: 20px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 4px 12px;
+  border: 1px solid var(--accent-dim);
+  opacity: 0.7;
+}
+
+.card-full {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  padding: 60px 52px;
+}
+.card-full .card-content { padding-right: 24px; }
+.card-full .card-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid var(--border);
+  padding-left: 48px;
+}
+.card-full .card-visual svg {
+  width: auto;
+  height: 48px;
+  stroke: var(--accent);
+  stroke-width: 1.2;
+  fill: none;
+  opacity: 0.15;
+}
+
+.feature-section {
+  max-width: 100%;
+  padding: 140px 48px;
+  background: var(--bg2);
+  margin-top: 40px;
+  position: relative;
+}
+.feature-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.25;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  pointer-events: none;
+}
+.feature-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+.feature-left .pre {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+.feature-left h2 {
+  font-family: var(--font-display);
+  font-size: clamp(32px, 3.5vw, 48px);
+  font-weight: 400;
+  letter-spacing: 4px;
+  line-height: 1.2;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+.feature-left p {
+  font-size: 17px;
+  color: var(--text-dim);
+  line-height: 2;
+}
+.feature-right {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.feature-right .f-card {
+  background: var(--bg);
+  padding: 36px 32px;
+  border: 1px solid var(--border);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.feature-right .f-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+}
+.feature-right .f-card .f-num {
+  font-family: var(--font-mono);
+  font-size: 30px;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.feature-right .f-card h4 {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+.feature-right .f-card p {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.8;
+}
+
+.quote-section {
+  padding: 120px 48px;
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+.quote-section blockquote {
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 3vw, 38px);
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--text);
+  position: relative;
+}
+.quote-section blockquote::before {
+  content: '\201C';
+  font-family: var(--font-serif);
+  font-size: 80px;
+  color: var(--accent-dim);
+  display: block;
+  margin-bottom: -20px;
+  opacity: 0.2;
+}
+.quote-section .attr {
+  margin-top: 32px;
+  font-size: 14px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+footer .f-logo {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--text);
+}
+footer .f-links { display: flex; gap: 24px; }
+footer .f-links a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.3s;
+  font-size: 13px;
+}
+footer .f-links a:hover { color: var(--text-dim); }
+
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Windows key icon (inline SVG replacement for &#8862;) */
+.win-key {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  position: relative;
+}
+.win-key svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+@media (max-width: 900px) {
+  nav { padding: 20px 24px; }
+  nav .nav-links { display: none; }
+  .hero { padding: 60px 24px; }
+  .hero h1 { letter-spacing: 6px; }
+  .hero p { font-size: 17px; }
+  section { padding: 80px 24px; }
+  .intro-grid { grid-template-columns: 1fr; gap: 48px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .card-full { grid-template-columns: 1fr; padding: 44px 32px; gap: 32px; }
+  .card-full .card-content { padding-right: 0; }
+  .card-full .card-visual { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 32px; }
+  .feature-inner { grid-template-columns: 1fr; gap: 48px; }
+  .feature-right { grid-template-columns: 1fr; }
+  .feature-section { padding: 80px 24px; }
+  .quote-section { padding: 80px 24px; }
+  footer { flex-direction: column; gap: 16px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">re<span>·</span>think</div>
+  <div class="nav-links">
+    <a href="#insights">探知</a>
+    <a href="#craft">技法</a>
+    <a href="#philosophy">思辨</a>
+  </div>
+</nav>
+
+<section class="hero" id="top">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-decor-line"></div>
+  <div class="hero-decor-line-r"></div>
+  <div class="label">Knowledge Reimagined</div>
+  <h1>电脑还能<br><span class="highlight">这么用</span>？</h1>
+  <p>你每天面对这台机器至少八小时，却只见过它一面。在 GUI 之下、在默认设置之外、在「正常用法」的边缘——藏着一个等待被重新发现的工具箱。</p>
+  <div class="scroll-indicator">
+    <span>探索</span>
+    <div class="line"></div>
+  </div>
+</section>
+
+<section class="intro reveal" id="insights">
+  <div class="intro-grid">
+    <div class="intro-text">
+      <div class="section-header">
+        <span class="number">01 / 认知边界</span>
+        <h2>你只用了它<br>十分之一的灵魂</h2>
+        <div class="rule"></div>
+      </div>
+      <p>我们用电脑的方式，固化得太早了。双击图标、打开软件、开始工作——这套流程如此自然，以至于没人停下来问一句：<em>这个功能还能用来做什么？</em></p>
+      <p>快捷键不只是省时间，它们改变的是你和机器之间的对话方式。脚本不只是偷懒，它们是你意志的延伸。系统深处那些从未被点开的设置面板，每一个都可能重新定义你与工具的关系。</p>
+      <p>真正的「会用电脑」，不是学会某个软件的操作手册，而是建立起一种本能：在任何界面中，都能嗅到那些未被言明的可能性。</p>
+      <div class="pull-quote">"一台电脑是世界上最危险的工具，也是最温柔的画布——完全取决于握住它的人。"</div>
+    </div>
+    <div class="intro-stats">
+      <div class="stat"><div class="num">87%</div><div class="desc">桌面用户从未触碰过系统自带的高级工具</div></div>
+      <div class="stat"><div class="num">2,000+</div><div class="desc">macOS 和 Windows 隐藏快捷键的总数</div></div>
+      <div class="stat"><div class="num">72%</div><div class="desc">自动化可将重复操作的时间压缩至此</div></div>
+      <div class="stat"><div class="num">&infin;</div><div class="desc">创造力不被硬件束缚的可能性</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal" style="padding-top:40px;">
+  <div class="section-header">
+    <span class="number">02 / 七种武器</span>
+    <h2>键盘之外的键盘</h2>
+    <div class="rule"></div>
+  </div>
+
+  <div class="cards-grid">
+
+    <div class="card reveal">
+      <span class="card-number">01</span>
+      <div class="card-icon">
+        <svg viewBox="0 0 32 32">
+          <rect x="2" y="10" width="28" height="16" rx="2"/>
+          <line x1="6" y1="16" x2="10" y2="16"/>
+          <line x1="6" y1="20" x2="8" y2="20"/>
+          <line x1="12" y1="16" x2="20" y2="16"/>
+          <line x1="22" y1="16" x2="26" y2="16"/>
+          <circle cx="24" cy="21" r="3"/>
+          <line x1="24" y1="21" x2="28" y2="14"/>
+          <path d="M14 8 L16 5 L18 8" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h3>键盘即乐器</h3>
+      <p>把键盘当作一件真正的乐器来演奏，而不只是打字输入的工具。</p>
+      <p><strong>Live Coding（实时编程音乐）</strong> 是一种正在兴起的表演艺术形式——程序员用代码实时生成电子音乐，每一行新指令都即时改变声场。Sonic Pi 是入门首选：它以 Ruby 语法封装了合成器引擎，你只需写 <code>play :C4</code> 就能听见钢琴声，写 3 行 loop 就能织出一段循环节奏。FoxDot 更进一步，它让 Python 代码与 SuperCollider 合成器引擎对话，支持用算法定义旋律、节奏、和声，甚至将音乐参数映射到视觉粒子系统上。</p>
+      <p><strong>模块化合成器</strong> 也从硬件走进了软件。VCV Rack 免费开源，它模拟了 Eurorack 硬件模块合成的完整信号链路：振荡器 &rarr; 滤波器 &rarr; 包络 &rarr; VCA，你可以随意跳线、组合、调制。Orca 则另辟蹊径——它是一个二维网格编程语言，音符在格子间像生命游戏一样扩散、碰撞、触发音色。花一个下午搭建一个模块链，你会发现声音设计本质上和写代码是同一件事：定义输入，控制流，观察输出。</p>
+      <div class="tool-list">
+        <code>Sonic Pi</code> Ruby 语法实时编曲 · <code>FoxDot</code> Python 控制 SuperCollider · <code>VCV Rack</code> 免费模块合成器 · <code>Orca</code> 二维网格音符编程 · <code>Hydra</code> 实时视频合成
+      </div>
+      <span class="tag">创作</span>
+    </div>
+
+    <div class="card reveal">
+      <span class="card-number">02</span>
+      <div class="card-icon">
+        <svg viewBox="0 0 32 32">
+          <rect x="3" y="8" width="26" height="18" rx="2"/>
+          <line x1="8" y1="14" x2="8" y2="22"/>
+          <line x1="12" y1="11" x2="12" y2="24"/>
+          <line x1="16" y1="14" x2="16" y2="22"/>
+          <line x1="20" y1="11" x2="20" y2="24"/>
+          <line x1="24" y1="14" x2="24" y2="22"/>
+          <path d="M13 4 L16 7 L19 4" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h3>快捷键里的宇宙</h3>
+      <p>鼠标是人类输入效率最低的发明之一，这个论断有扎实的认知科学依据：从手离开键盘到握住鼠标、定位、点击、再回到键盘，平均需要 0.8-1.2 秒。一天 200 次这样的切换，浪费的时间接近 20 分钟——一年就是 80 多个小时。</p>
+      <p>真正的高手把操作系统调教成一把乐器，双手不离开键盘，思维不被打断。但快捷键的真正威力不在于单个组合，而在于<strong>组合的组合</strong>：比如在 macOS 上，<code>&#8984;&#8679;4</code> 截图后按住 Control 可直接存入剪贴板而非生成文件；<code>&#8984;Tab</code> 切换应用后立即按 <code>&#8984;`</code> 可切换同一应用的窗口；在 Finder 中 <code>&#8984;&#8679;G</code> 直达路径后 <code>&#8984;&#8593;</code> 快速回到上级目录。</p>
+      <p><strong>窗口管理</strong> 是效率提升的最大捷径。Rectangle（macOS）或 PowerToys FancyZones（Windows）能把屏幕分割成自定义区域，窗口贴边即可自动吸附。学会这十组快捷键，你的操作速度至少翻倍。</p>
+      <div class="tool-list">
+        macOS 必知: <code>&#8984;&#8679;4</code> 精确截图 · <code>&#8997;&#8984;Space</code> 聚焦搜索 · <code>&#8984;&#8679;G</code> 跳转到路径 · <code>&#8984;&#8679;~</code> 同应用窗口切换<br>
+        Windows 必知:
+        <code><span class="win-key"><svg viewBox="0 0 16 16"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg></span>&#8679;S</code> 截图 ·
+        <code><span class="win-key"><svg viewBox="0 0 16 16"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg></span>V</code> 云剪贴板历史 ·
+        <code><span class="win-key"><svg viewBox="0 0 16 16"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg></span>&#8679;&#8592;&rarr;</code> 窗口分屏 ·
+        <code><span class="win-key"><svg viewBox="0 0 16 16"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z"/></svg></span>D</code> 显示桌面
+      </div>
+      <span class="tag">效率</span>
+    </div>
+
+    <div class="card reveal">
+      <span class="card-number">03</span>
+      <div class="card-icon">
+        <svg viewBox="0 0 32 32">
+          <rect x="3" y="6" width="26" height="20" rx="2" style="fill:var(--bg2)"/>
+          <path d="M8 14 L14 10 L20 14 L26 10" stroke-linejoin="round"/>
+          <path d="M8 18 L14 14 L20 18 L26 14" stroke-linejoin="round"/>
+          <path d="M8 22 L14 18 L20 22 L26 18" stroke-linejoin="round"/>
+          <circle cx="16" cy="22" r="2" style="fill:var(--accent)" stroke="none"/>
+          <path d="M8 6 L8 8" /><path d="M26 6 L26 8" />
+        </svg>
+      </div>
+      <h3>终端里的画布</h3>
+      <p>你那个黑底绿字的终端，其实是一间暗房。当 GUI 成为负担，最原始的界面反而给你最完整的控制权——这也是为什么许多艺术家回归命令行。</p>
+      <p><strong>图像转 ASCII</strong> 看似复古，实则有深刻的美学追求。chafa 和 jp2a 能把你的一张照片实时转为字符画，但差别巨大：chafa 支持 24 位真彩色、多种 dithering 算法，甚至能用 Unicode 半块字符实现接近原图一半分辨率的渲染效果。配合 <code>--symbols</code> 参数选择字符集（block/shade/braille），一张照片能变成几十种截然不同的艺术风格。</p>
+      <p><strong>终端本身就是画板。</strong> Pipes.sh 让彩色的管道在终端蜿蜒生长，Cmatrix 模拟《黑客帝国》数字雨——但别只把它们当屏保。更激进的玩法是用 tput 和 ANSI 转义码直接在终端绘制矢量图形：<code>\e[48;2;R;G;Bm</code> 可以为任意字符设置 24 位背景色，组合起来就是一块像素画布。配合 Shell 脚本循环，你可以做终端动画、实时数据可视化、甚至简单的物理模拟。</p>
+      <div class="tool-list">
+        <code>chafa</code> 真彩色图片转终端 · <code>jp2a</code> JPEG 转 ASCII · <code>pipes.sh</code> 管道粒子系统 · <code>cmatrix</code> 矩阵数字雨 · <code>broot</code> 树形文件浏览器 · <code>neofetch</code> 系统信息艺术化
+      </div>
+      <span class="tag">艺术</span>
+    </div>
+
+    <div class="card reveal">
+      <span class="card-number">04</span>
+      <div class="card-icon">
+        <svg viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="11"/>
+          <circle cx="16" cy="16" r="5"/>
+          <path d="M16 5 L16 8 M16 24 L16 27 M5 16 L8 16 M24 16 L27 16" />
+          <path d="M8.5 8.5 L10.5 10.5 M21.5 21.5 L23.5 23.5 M8.5 23.5 L10.5 21.5 M21.5 10.5 L23.5 8.5" />
+          <circle cx="16" cy="16" r="2" style="fill:var(--accent)" stroke="none"/>
+        </svg>
+      </div>
+      <h3>旧机器的第二人生</h3>
+      <p>一台五年前的笔记本，真的就「不能用」了吗？问题的根源通常不是硬件，而是臃肿的最新版操作系统和应用。换上一个轻量级操作系统，它能做的事远超你想象。</p>
+      <p><strong>家庭服务器</strong> 是最简单的起步：安装 Ubuntu Server（最小化只需 256MB 内存），装上 CasaOS 或 DietPi 作为管理面板，瞬间拥有 NAS 文件共享、Jellyfin 媒体流、qBittorrent 下载机、AdGuard Home 全网去广告 —— 一台老旧笔记本就能覆盖整个家庭的基础设施需求。</p>
+      <p><strong>再激进一点：</strong> Pi-hole 做 DNS 级广告拦截，配置好后全家所有设备的广告在到达浏览器之前就被丢弃，连 App 内的开屏广告都能被过滤。Home Assistant 做智能家居中枢，只要旧电脑有一个 USB 口插上 Zigbee 网关，就能统一接管灯泡、传感器、窗帘、空调。旧电脑不是垃圾，它只是还没找到自己的角色。</p>
+      <div class="tool-list">
+        <code>Ubuntu Server</code> 家庭服务器 · <code>CasaOS</code> 轻量 NAS 面板 · <code>Pi-hole</code> 全局去广告 · <code>DietPi</code> 极限精简系统 · <code>Home Assistant</code> 智能家居中枢 · <code>RetroPie</code> 复古游戏机
+      </div>
+      <span class="tag">重生</span>
+    </div>
+
+    <div class="card reveal">
+      <span class="card-number">05</span>
+      <div class="card-icon">
+        <svg viewBox="0 0 32 32">
+          <rect x="4" y="6" width="24" height="20" rx="2"/>
+          <line x1="10" y1="12" x2="22" y2="12"/>
+          <line x1="10" y1="16" x2="18" y2="16"/>
+          <line x1="10" y1="20" x2="20" y2="20"/>
+          <circle cx="24" cy="20" r="3" style="fill:var(--accent)" stroke="none"/>
+          <line x1="24" y1="20" x2="24" y2="16"/>
+          <line x1="24" y1="16" x2="26" y2="16"/>
+        </svg>
+      </div>
+      <h3>自动化你的日常</h3>
+      <p>一个简单的判断标准：每天重复三次以上的操作，就值得被自动化。这不仅省时间，更重要的是消除重复带来的认知疲劳——每次手动操作都是一次注意力中断。</p>
+      <p><strong>文件自动化：</strong> Hazel（macOS）是文件整理的神器：设定规则「下载文件夹中 PDF 文件超过 24 小时 &rarr; 移动到 Documents/Papers」后，它就在后台静默执行。AutoHotkey（Windows）能做到更多——写 5 行脚本，把一个快捷键映射为「打开浏览器、输入搜索词、截取结果、存入 Obsidian」的完整流程。</p>
+      <p><strong>工作流自动化：</strong> n8n 是自托管的 Zapier 替代品。拖拽节点就能搭建：收到带附件的邮件 &rarr; 提取内容 &rarr; 调用 AI 总结 &rarr; 写入 Notion 数据库 &rarr; 推送 Slack 通知的完整流水线。更进一步，Keyboard Maestro 可以录制你的操作序列并回放，甚至能在条件判断中做出「如果窗口标题包含 X，则执行 Y」这样的智能决策。把电脑从「被操作的对象」变成「替你操作的主体」，这才是它本该做的事。</p>
+      <div class="tool-list">
+        <code>Keyboard Maestro</code> macOS 自动化神兵 · <code>AutoHotkey</code> Windows 脚本利器 · <code>Hazel</code> 文件自动整理 · <code>n8n</code> 自托管工作流 · <code>Shortcuts</code> Apple 原生自动化 · <code>Power Automate</code> Windows 流程自动化
+      </div>
+      <span class="tag">解放</span>
+    </div>
+
+    <div class="card reveal">
+      <span class="card-number">06</span>
+      <div class="card-icon">
+        <svg viewBox="0 0 32 32">
+          <circle cx="16" cy="16" r="12"/>
+          <ellipse cx="16" cy="16" rx="10" ry="4"/>
+          <path d="M6 10 Q16 18 26 10" />
+          <path d="M6 22 Q16 14 26 22" />
+          <circle cx="16" cy="16" r="2" style="fill:var(--accent)" stroke="none"/>
+        </svg>
+      </div>
+      <h3>浏览器即操作系统</h3>
+      <p>浏览器早已不只是浏览工具。在 WebAssembly 和 PWA 技术的支撑下，浏览器正逐步模糊「本地应用」和「网页应用」的边界。</p>
+      <p><strong>WebAssembly 带来了什么？</strong> C/C++/Rust 代码可以编译成 WASM 在浏览器中以接近原生的速度运行。Figma 的引擎用 WASM 运行 C++ 的矢量渲染核心，Photopea 用 WASM 加载了完整的 PSD 解析库——这就是为什么浏览器里的设计工具能和本地 Photoshop 掰手腕的原因。对于普通用户来说，这意味着你不再需要为了一个功能安装几百 MB 的软件。</p>
+      <p><strong>PWA（渐进式 Web 应用）</strong> 是可安装、可离线运行、可接收推送通知的网页。一个 PWA 图标在你的 Dock/任务栏上看起来和原生应用毫无区别——但它背后只托着一个 URL。当你用 vscode.dev 写代码，用 Excalidraw 画白板，用 tldraw 做线框图，用 Photopea 修图，用 Notion 写文档，你的下一台电脑真的可以只是一个浏览器标签页。</p>
+      <div class="tool-list">
+        <code>Figma</code> 矢量设计 · <code>Photopea</code> 免费 PS 替代 · <code>Excalidraw</code> 手绘风格白板 · <code>vscode.dev</code> 浏览器里的 VS Code · <code>Observable</code> 交互式数据叙事 · <code>tldraw</code> 无限画布 · <code>MusicLM</code> AI 音乐生成 · <code>Runway</code> 浏览器内视频编辑
+      </div>
+      <span class="tag">进化</span>
+    </div>
+
+    <div class="card card-full reveal">
+      <div class="card-content">
+        <span class="card-number">07</span>
+        <div class="card-icon">
+          <svg viewBox="0 0 32 32">
+            <path d="M4 20 Q10 8 16 16 Q22 24 28 12" />
+            <circle cx="16" cy="16" r="2" style="fill:var(--accent)" stroke="none"/>
+            <circle cx="4" cy="20" r="1.5" style="fill:var(--accent)" stroke="none"/>
+            <circle cx="28" cy="12" r="1.5" style="fill:var(--accent)" stroke="none"/>
+            <path d="M8 6 L10 10 L14 8" stroke-linejoin="round"/>
+            <path d="M22 22 L24 26 L26 24" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>用数据写诗</h3>
+        <p>编程创作的核心从来不是技术，而是表达。代码是 21 世纪的鹅毛笔——你的表达欲望有多强，代码被赋予的使命就有多重。</p>
+        <p><strong>数据可视化是最直接的跨界语言。</strong> D3.js 不只是图表库，它让你把 GDP 数据变成山川河流——将数值映射到高度、颜色、透明度、甚至笔画粗细。改变一个映射函数，同一个数据集就能讲述截然不同的故事。Observable 笔记本让数据探索变成叙事：在交互式表格旁嵌入文本，在图表上方写批注，读者可以拖动滑块改变参数、实时观察图表变化——这不是报告，这是活的文档。</p>
+        <p><strong>三维和视觉创作</strong> 也早已不依赖大型软件。Three.js 在浏览器中搭建可进入的 3D 空间，p5.js 让创意编程的入门门槛降到几乎为零——写 10 行代码就能生成一幅动态艺术作品。ShaderToy 上用 GLSL 写的像素着色器，每一帧都是数学公式在 GPU 上实时计算的独一无二的图像。从数据到诗意，从逻辑到审美——代码正在模糊「工程师」和「艺术家」的界限。</p>
+        <div class="tool-list">
+          <code>D3.js</code> 数据驱动文档 · <code>p5.js</code> 创意编程入门 · <code>Three.js</code> 浏览器 3D 引擎 · <code>ShaderToy</code> GLSL 像素艺术 · <code>Observable Plot</code> 快速数据图表 · <code>Mapbox GL</code> 地理数据可视化
+        </div>
+        <span class="tag">跨界</span>
+      </div>
+      <div class="card-visual">
+        <svg viewBox="0 0 180 30">
+          <path d="M5 20 L20 10 L35 18 L50 8 L65 15 L80 5 L95 12 L110 22 L125 14 L140 18 L155 8 L170 16"/>
+          <circle cx="20" cy="10" r="1.5"/>
+          <circle cx="50" cy="8" r="1.5"/>
+          <circle cx="80" cy="5" r="1.5"/>
+          <circle cx="110" cy="22" r="1.5"/>
+          <circle cx="155" cy="8" r="1.5"/>
+          <text x="90" y="28" font-size="6" text-anchor="middle" stroke="none" style="fill:var(--accent);opacity:0.6;font-family:var(--font-mono)">code &rarr; poetry</text>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="feature-section reveal" id="craft">
+  <div class="feature-inner">
+    <div class="feature-left">
+      <div class="pre">03 / 四种心法</div>
+      <h2>工具的价值<br>取决于你如何<br>看待它</h2>
+      <p>电脑不是冰箱——它不只是被动保存内容的容器。它是一种媒介、一座乐器、一间暗房、一个可以无限重塑的宇宙。但大多数人终其一生只把它当作一个「装有软件的盒子」来使用。</p>
+      <p>认知科学家 Don Norman 在《设计心理学》中提出了「可供性」（affordance）的概念：一个物体能做什么，不仅取决于它的物理属性，更取决于使用者感知到的可能性。你把电脑看作打字机，它就只是打字机。你把电脑看作乐器、画布、出版厂牌、自动化工厂——它就真的是。</p>
+      <p style="font-style:italic;color:var(--text);margin-top:20px;">关键在于你有没有停下来问：<br>等等，这个还能怎么用？</p>
+    </div>
+    <div class="feature-right">
+      <div class="f-card">
+        <div class="f-num">01</div>
+        <h4>观察</h4>
+        <p>一个功能不只是它看起来的样子。右键菜单里那些你从未点开的选项、状态栏上不起眼的图标、设置面板中默认被折叠的高级选项——下次打开任何一个软件时，花 10 分钟系统性地翻遍每一个菜单。你极大概率会发现一些从未见过的功能，而它们恰好能解决你昨天还靠手动操作的某个难题。</p>
+      </div>
+      <div class="f-card">
+        <div class="f-num">02</div>
+        <h4>拆解</h4>
+        <p>把工具当乐高。从来没有一个功能是孤立存在的。这个软件的通知机制 + 那个脚本的触发条件 + 另一个服务的 API = 一条全新的工作流。当你在一个 App 中看到「支持 URL Scheme」或「有 CLI 接口」时，不要跳过——那是它愿意被你的意志组合的信号。</p>
+      </div>
+      <div class="f-card">
+        <div class="f-num">03</div>
+        <h4>重构</h4>
+        <p>不要接受默认。你的工作流应该由你设计，而不是软件供应商的产品经理决定。快捷键可以自定义、工具栏可以重排、自动保存路径可以修改、邮件规则可以自己写。每当你觉得「这软件用起来总有不顺手的地方」，那不是你的问题——是你还没有夺回对工具的控制权。</p>
+      </div>
+      <div class="f-card">
+        <div class="f-num">04</div>
+        <h4>分享</h4>
+        <p>知识因分享而增值。你花半小时发现的技巧，可能替另一个人省下半天。每次分享，都在重新定义「电脑还能这么用」这个问题的边界。写一篇博客、发一条推文、给同事演示一次——教是最好的学，也同时让这个社区的知识密度再涨一点。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="quote-section reveal" id="philosophy">
+  <blockquote>
+    每台电脑里都藏着一架钢琴、一块画布、一座图书馆和一间实验室。<br>
+    大多数人终其一生，只用过它的文件管理器和浏览器。
+  </blockquote>
+  <div class="attr">—— 来自某位不愿透露姓名的键盘侠</div>
+</div>
+
+<footer>
+  <div class="f-logo">re<span style="color:var(--accent);">·</span>think</div>
+  <div>电脑还能这么用？ — 一个持续更新的知识分享计划</div>
+  <div class="f-links">
+    <a href="#top">回到顶部</a>
+    <a href="#">关于</a>
+    <a href="#">投稿</a>
+  </div>
+</footer>
+
+<script>
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+const nav = document.querySelector('nav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 100) {
+    nav.classList.add('scrolled');
+  } else {
+    nav.classList.remove('scrolled');
+  }
+}, { passive: true });
+</script>
+</body>
+</html>
