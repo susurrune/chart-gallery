@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D 旋转元素周期表</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#0a0a1a;font-family:'Inter','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;color:#fff;user-select:none}
+#canvas-container{width:100vw;height:100vh;display:block}
+
+#title-bar{
+position:fixed;top:28px;left:50%;transform:translateX(-50%);
+text-align:center;z-index:10;pointer-events:none;
+}
+#title-bar h1{
+font-size:22px;font-weight:500;letter-spacing:6px;
+background:linear-gradient(135deg,#a8b8ff,#7c8cff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+text-shadow:0 0 40px rgba(124,140,255,.15);
+}
+#title-bar p{font-size:13px;color:rgba(255,255,255,.35);letter-spacing:2px;margin-top:4px}
+#title-bar .hint{font-size:11px;color:rgba(255,255,255,.2);margin-top:8px;letter-spacing:1px}
+
+#info-panel{
+position:fixed;right:32px;top:50%;transform:translateY(-50%);
+width:200px;background:rgba(255,255,255,.04);backdrop-filter:blur(20px);
+-webkit-backdrop-filter:blur(20px);
+border:1px solid rgba(255,255,255,.06);border-radius:16px;
+padding:24px;z-index:10;opacity:0;transition:opacity .4s ease,transform .4s ease;
+transform:translateY(-50%) translateX(20px);pointer-events:none;
+}
+#info-panel.visible{opacity:1;transform:translateY(-50%) translateX(0);pointer-events:auto}
+#info-panel .symbol{font-size:48px;font-weight:600;line-height:1;letter-spacing:-2px}
+#info-panel .name{font-size:16px;color:rgba(255,255,255,.6);margin-top:4px}
+#info-panel .number{font-size:13px;color:rgba(255,255,255,.3);margin-top:2px}
+#info-panel .detail{font-size:12px;color:rgba(255,255,255,.4);margin-top:12px;line-height:1.6}
+#info-panel .detail span{color:rgba(255,255,255,.6)}
+#info-panel .category-badge{
+display:inline-block;padding:3px 10px;border-radius:20px;
+font-size:11px;margin-top:12px;letter-spacing:1px;
+}
+#info-panel .divider{height:1px;background:rgba(255,255,255,.06);margin:14px 0}
+#info-panel .sub-info{font-size:12px;color:rgba(255,255,255,.3);line-height:1.8}
+
+#legend{
+position:fixed;left:28px;bottom:28px;z-index:10;
+background:rgba(255,255,255,.03);backdrop-filter:blur(12px);
+-webkit-backdrop-filter:blur(12px);
+border:1px solid rgba(255,255,255,.05);border-radius:12px;
+padding:14px 18px;display:flex;flex-wrap:wrap;gap:6px 12px;max-width:400px;
+}
+#legend .item{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.5);letter-spacing:.5px}
+#legend .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+#controls{
+position:fixed;right:28px;bottom:28px;z-index:10;
+display:flex;gap:8px;
+}
+#controls button{
+background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+color:rgba(255,255,255,.6);border-radius:10px;padding:8px 14px;
+font-size:12px;cursor:pointer;transition:all .25s;letter-spacing:.5px;font-family:inherit;
+}
+#controls button:hover{background:rgba(255,255,255,.12);color:#fff}
+#controls button.active{background:rgba(124,140,255,.2);border-color:rgba(124,140,255,.3);color:#a8b8ff}
+
+@media(max-width:768px){
+#info-panel{right:16px;width:170px;padding:18px}
+#info-panel .symbol{font-size:36px}
+#title-bar h1{font-size:17px;letter-spacing:4px}
+#legend{left:16px;bottom:16px;padding:10px 14px;max-width:300px}
+#legend .item{font-size:10px}
+#controls{right:16px;bottom:16px}
+#controls button{padding:6px 10px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div id="title-bar">
+<h1>元素周期表</h1>
+<p>PERIODIC TABLE · 3D</p>
+<p class="hint">拖拽旋转 · 悬停查看</p>
+</div>
+
+<div id="canvas-container"></div>
+
+<div id="info-panel">
+<div class="symbol" id="el-symbol">--</div>
+<div class="name" id="el-name">--</div>
+<div class="number" id="el-number">--</div>
+<div class="divider"></div>
+<div class="detail" id="el-detail"></div>
+<div class="sub-info" id="el-sub"></div>
+<div class="category-badge" id="el-category"></div>
+</div>
+
+<div id="legend"></div>
+
+<div id="controls">
+<button id="btn-rotate" class="active">旋转</button>
+<button id="btn-spiral">螺旋</button>
+<button id="btn-reset">重置</button>
+</div>
+
+<script type="importmap">
+{
+"imports":{
+"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+"three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ─── Element Data ───────────────────────────────────────────────
+const ELEMENTS = [
+{s:1,n:"氢",sym:"H",p:1,g:1,cat:"nonmetal",m:1.008,el:"1s¹",neg:2.20},
+{s:2,n:"氦",sym:"He",p:1,g:18,cat:"noble-gas",m:4.003,el:"1s²",neg:0},
+{s:3,n:"锂",sym:"Li",p:2,g:1,cat:"alkali-metal",m:6.941,el:"[He]2s¹",neg:0.98},
+{s:4,n:"铍",sym:"Be",p:2,g:2,cat:"alkaline-earth",m:9.012,el:"[He]2s²",neg:1.57},
+{s:5,n:"硼",sym:"B",p:2,g:13,cat:"metalloid",m:10.81,el:"[He]2s²2p¹",neg:2.04},
+{s:6,n:"碳",sym:"C",p:2,g:14,cat:"nonmetal",m:12.01,el:"[He]2s²2p²",neg:2.55},
+{s:7,n:"氮",sym:"N",p:2,g:15,cat:"nonmetal",m:14.01,el:"[He]2s²2p³",neg:3.04},
+{s:8,n:"氧",sym:"O",p:2,g:16,cat:"nonmetal",m:16.00,el:"[He]2s²2p⁴",neg:3.44},
+{s:9,n:"氟",sym:"F",p:2,g:17,cat:"halogen",m:19.00,el:"[He]2s²2p⁵",neg:3.98},
+{s:10,n:"氖",sym:"Ne",p:2,g:18,cat:"noble-gas",m:20.18,el:"[He]2s²2p⁶",neg:0},
+{s:11,n:"钠",sym:"Na",p:3,g:1,cat:"alkali-metal",m:22.99,el:"[Ne]3s¹",neg:0.93},
+{s:12,n:"镁",sym:"Mg",p:3,g:2,cat:"alkaline-earth",m:24.31,el:"[Ne]3s²",neg:1.31},
+{s:13,n:"铝",sym:"Al",p:3,g:13,cat:"post-transition",m:26.98,el:"[Ne]3s²3p¹",neg:1.61},
+{s:14,n:"硅",sym:"Si",p:3,g:14,cat:"metalloid",m:28.09,el:"[Ne]3s²3p²",neg:1.90},
+{s:15,n:"磷",sym:"P",p:3,g:15,cat:"nonmetal",m:30.97,el:"[Ne]3s²3p³",neg:2.19},
+{s:16,n:"硫",sym:"S",p:3,g:16,cat:"nonmetal",m:32.07,el:"[Ne]3s²3p⁴",neg:2.58},
+{s:17,n:"氯",sym:"Cl",p:3,g:17,cat:"halogen",m:35.45,el:"[Ne]3s²3p⁵",neg:3.16},
+{s:18,n:"氩",sym:"Ar",p:3,g:18,cat:"noble-gas",m:39.95,el:"[Ne]3s²3p⁶",neg:0},
+{s:19,n:"钾",sym:"K",p:4,g:1,cat:"alkali-metal",m:39.10,el:"[Ar]4s¹",neg:0.82},
+{s:20,n:"钙",sym:"Ca",p:4,g:2,cat:"alkaline-earth",m:40.08,el:"[Ar]4s²",neg:1.00},
+{s:21,n:"钪",sym:"Sc",p:4,g:3,cat:"transition",m:44.96,el:"[Ar]3d¹4s²",neg:1.36},
+{s:22,n:"钛",sym:"Ti",p:4,g:4,cat:"transition",m:47.87,el:"[Ar]3d²4s²",neg:1.54},
+{s:23,n:"钒",sym:"V",p:4,g:5,cat:"transition",m:50.94,el:"[Ar]3d³4s²",neg:1.63},
+{s:24,n:"铬",sym:"Cr",p:4,g:6,cat:"transition",m:52.00,el:"[Ar]3d⁵4s¹",neg:1.66},
+{s:25,n:"锰",sym:"Mn",p:4,g:7,cat:"transition",m:54.94,el:"[Ar]3d⁵4s²",neg:1.55},
+{s:26,n:"铁",sym:"Fe",p:4,g:8,cat:"transition",m:55.85,el:"[Ar]3d⁶4s²",neg:1.83},
+{s:27,n:"钴",sym:"Co",p:4,g:9,cat:"transition",m:58.93,el:"[Ar]3d⁷4s²",neg:1.88},
+{s:28,n:"镍",sym:"Ni",p:4,g:10,cat:"transition",m:58.69,el:"[Ar]3d⁸4s²",neg:1.91},
+{s:29,n:"铜",sym:"Cu",p:4,g:11,cat:"transition",m:63.55,el:"[Ar]3d¹⁰4s¹",neg:1.90},
+{s:30,n:"锌",sym:"Zn",p:4,g:12,cat:"transition",m:65.38,el:"[Ar]3d¹⁰4s²",neg:1.65},
+{s:31,n:"镓",sym:"Ga",p:4,g:13,cat:"post-transition",m:69.72,el:"[Ar]3d¹⁰4s²4p¹",neg:1.81},
+{s:32,n:"锗",sym:"Ge",p:4,g:14,cat:"metalloid",m:72.63,el:"[Ar]3d¹⁰4s²4p²",neg:2.01},
+{s:33,n:"砷",sym:"As",p:4,g:15,cat:"metalloid",m:74.92,el:"[Ar]3d¹⁰4s²4p³",neg:2.18},
+{s:34,n:"硒",sym:"Se",p:4,g:16,cat:"nonmetal",m:78.96,el:"[Ar]3d¹⁰4s²4p⁴",neg:2.55},
+{s:35,n:"溴",sym:"Br",p:4,g:17,cat:"halogen",m:79.90,el:"[Ar]3d¹⁰4s²4p⁵",neg:2.96},
+{s:36,n:"氪",sym:"Kr",p:4,g:18,cat:"noble-gas",m:83.80,el:"[Ar]3d¹⁰4s²4p⁶",neg:3.00},
+{s:37,n:"铷",sym:"Rb",p:5,g:1,cat:"alkali-metal",m:85.47,el:"[Kr]5s¹",neg:0.82},
+{s:38,n:"锶",sym:"Sr",p:5,g:2,cat:"alkaline-earth",m:87.62,el:"[Kr]5s²",neg:0.95},
+{s:39,n:"钇",sym:"Y",p:5,g:3,cat:"transition",m:88.91,el:"[Kr]4d¹5s²",neg:1.22},
+{s:40,n:"锆",sym:"Zr",p:5,g:4,cat:"transition",m:91.22,el:"[Kr]4d²5s²",neg:1.33},
+{s:41,n:"铌",sym:"Nb",p:5,g:5,cat:"transition",m:92.91,el:"[Kr]4d⁴5s¹",neg:1.30},
+{s:42,n:"钼",sym:"Mo",p:5,g:6,cat:"transition",m:95.95,el:"[Kr]4d⁵5s¹",neg:2.16},
+{s:43,n:"锝",sym:"Tc",p:5,g:7,cat:"transition",m:98.00,el:"[Kr]4d⁵5s²",neg:1.90},
+{s:44,n:"钌",sym:"Ru",p:5,g:8,cat:"transition",m:101.07,el:"[Kr]4d⁷5s¹",neg:2.20},
+{s:45,n:"铑",sym:"Rh",p:5,g:9,cat:"transition",m:102.91,el:"[Kr]4d⁸5s¹",neg:2.28},
+{s:46,n:"钯",sym:"Pd",p:5,g:10,cat:"transition",m:106.42,el:"[Kr]4d¹⁰",neg:2.20},
+{s:47,n:"银",sym:"Ag",p:5,g:11,cat:"transition",m:107.87,el:"[Kr]4d¹⁰5s¹",neg:1.93},
+{s:48,n:"镉",sym:"Cd",p:5,g:12,cat:"transition",m:112.41,el:"[Kr]4d¹⁰5s²",neg:1.69},
+{s:49,n:"铟",sym:"In",p:5,g:13,cat:"post-transition",m:114.82,el:"[Kr]4d¹⁰5s²5p¹",neg:1.78},
+{s:50,n:"锡",sym:"Sn",p:5,g:14,cat:"post-transition",m:118.71,el:"[Kr]4d¹⁰5s²5p²",neg:1.96},
+{s:51,n:"锑",sym:"Sb",p:5,g:15,cat:"metalloid",m:121.76,el:"[Kr]4d¹⁰5s²5p³",neg:2.05},
+{s:52,n:"碲",sym:"Te",p:5,g:16,cat:"metalloid",m:127.60,el:"[Kr]4d¹⁰5s²5p⁴",neg:2.10},
+{s:53,n:"碘",sym:"I",p:5,g:17,cat:"halogen",m:126.90,el:"[Kr]4d¹⁰5s²5p⁵",neg:2.66},
+{s:54,n:"氙",sym:"Xe",p:5,g:18,cat:"noble-gas",m:131.29,el:"[Kr]4d¹⁰5s²5p⁶",neg:2.60},
+{s:55,n:"铯",sym:"Cs",p:6,g:1,cat:"alkali-metal",m:132.91,el:"[Xe]6s¹",neg:0.79},
+{s:56,n:"钡",sym:"Ba",p:6,g:2,cat:"alkaline-earth",m:137.33,el:"[Xe]6s²",neg:0.89},
+{s:57,n:"镧",sym:"La",p:6,g:3,cat:"lanthanide",m:138.91,el:"[Xe]5d¹6s²",neg:1.10},
+{s:58,n:"铈",sym:"Ce",p:6,g:4,cat:"lanthanide",m:140.12,el:"[Xe]4f¹5d¹6s²",neg:1.12},
+{s:59,n:"镨",sym:"Pr",p:6,g:5,cat:"lanthanide",m:140.91,el:"[Xe]4f³6s²",neg:1.13},
+{s:60,n:"钕",sym:"Nd",p:6,g:6,cat:"lanthanide",m:144.24,el:"[Xe]4f⁴6s²",neg:1.14},
+{s:61,n:"钷",sym:"Pm",p:6,g:7,cat:"lanthanide",m:145.00,el:"[Xe]4f⁵6s²",neg:1.13},
+{s:62,n:"钐",sym:"Sm",p:6,g:8,cat:"lanthanide",m:150.36,el:"[Xe]4f⁶6s²",neg:1.17},
+{s:63,n:"铕",sym:"Eu",p:6,g:9,cat:"lanthanide",m:151.96,el:"[Xe]4f⁷6s²",neg:1.20},
+{s:64,n:"钆",sym:"Gd",p:6,g:10,cat:"lanthanide",m:157.25,el:"[Xe]4f⁷5d¹6s²",neg:1.20},
+{s:65,n:"铽",sym:"Tb",p:6,g:11,cat:"lanthanide",m:158.93,el:"[Xe]4f⁹6s²",neg:1.22},
+{s:66,n:"镝",sym:"Dy",p:6,g:12,cat:"lanthanide",m:162.50,el:"[Xe]4f¹⁰6s²",neg:1.23},
+{s:67,n:"钬",sym:"Ho",p:6,g:13,cat:"lanthanide",m:164.93,el:"[Xe]4f¹¹6s²",neg:1.24},
+{s:68,n:"铒",sym:"Er",p:6,g:14,cat:"lanthanide",m:167.26,el:"[Xe]4f¹²6s²",neg:1.24},
+{s:69,n:"铥",sym:"Tm",p:6,g:15,cat:"lanthanide",m:168.93,el:"[Xe]4f¹³6s²",neg:1.25},
+{s:70,n:"镱",sym:"Yb",p:6,g:16,cat:"lanthanide",m:173.05,el:"[Xe]4f¹⁴6s²",neg:1.10},
+{s:71,n:"镥",sym:"Lu",p:6,g:17,cat:"lanthanide",m:174.97,el:"[Xe]4f¹⁴5d¹6s²",neg:1.27},
+{s:72,n:"铪",sym:"Hf",p:6,g:4,cat:"transition",m:178.49,el:"[Xe]4f¹⁴5d²6s²",neg:1.30},
+{s:73,n:"钽",sym:"Ta",p:6,g:5,cat:"transition",m:180.95,el:"[Xe]4f¹⁴5d³6s²",neg:1.50},
+{s:74,n:"钨",sym:"W",p:6,g:6,cat:"transition",m:183.84,el:"[Xe]4f¹⁴5d⁴6s²",neg:2.36},
+{s:75,n:"铼",sym:"Re",p:6,g:7,cat:"transition",m:186.21,el:"[Xe]4f¹⁴5d⁵6s²",neg:1.90},
+{s:76,n:"锇",sym:"Os",p:6,g:8,cat:"transition",m:190.23,el:"[Xe]4f¹⁴5d⁶6s²",neg:2.20},
+{s:77,n:"铱",sym:"Ir",p:6,g:9,cat:"transition",m:192.22,el:"[Xe]4f¹⁴5d⁷6s²",neg:2.20},
+{s:78,n:"铂",sym:"Pt",p:6,g:10,cat:"transition",m:195.08,el:"[Xe]4f¹⁴5d⁹6s¹",neg:2.28},
+{s:79,n:"金",sym:"Au",p:6,g:11,cat:"transition",m:196.97,el:"[Xe]4f¹⁴5d¹⁰6s¹",neg:2.54},
+{s:80,n:"汞",sym:"Hg",p:6,g:12,cat:"transition",m:200.59,el:"[Xe]4f¹⁴5d¹⁰6s²",neg:2.00},
+{s:81,n:"铊",sym:"Tl",p:6,g:13,cat:"post-transition",m:204.38,el:"[Xe]4f¹⁴5d¹⁰6s²6p¹",neg:1.80},
+{s:82,n:"铅",sym:"Pb",p:6,g:14,cat:"post-transition",m:207.20,el:"[Xe]4f¹⁴5d¹⁰6s²6p²",neg:2.33},
+{s:83,n:"铋",sym:"Bi",p:6,g:15,cat:"post-transition",m:208.98,el:"[Xe]4f¹⁴5d¹⁰6s²6p³",neg:2.02},
+{s:84,n:"钋",sym:"Po",p:6,g:16,cat:"post-transition",m:209.00,el:"[Xe]4f¹⁴5d¹⁰6s²6p⁴",neg:2.00},
+{s:85,n:"砹",sym:"At",p:6,g:17,cat:"halogen",m:210.00,el:"[Xe]4f¹⁴5d¹⁰6s²6p⁵",neg:2.20},
+{s:86,n:"氡",sym:"Rn",p:6,g:18,cat:"noble-gas",m:222.00,el:"[Xe]4f¹⁴5d¹⁰6s²6p⁶",neg:2.20},
+{s:87,n:"钫",sym:"Fr",p:7,g:1,cat:"alkali-metal",m:223.00,el:"[Rn]7s¹",neg:0.70},
+{s:88,n:"镭",sym:"Ra",p:7,g:2,cat:"alkaline-earth",m:226.00,el:"[Rn]7s²",neg:0.90},
+{s:89,n:"锕",sym:"Ac",p:7,g:3,cat:"actinide",m:227.00,el:"[Rn]6d¹7s²",neg:1.10},
+{s:90,n:"钍",sym:"Th",p:7,g:4,cat:"actinide",m:232.04,el:"[Rn]6d²7s²",neg:1.30},
+{s:91,n:"镤",sym:"Pa",p:7,g:5,cat:"actinide",m:231.04,el:"[Rn]5f²6d¹7s²",neg:1.50},
+{s:92,n:"铀",sym:"U",p:7,g:6,cat:"actinide",m:238.03,el:"[Rn]5f³6d¹7s²",neg:1.38},
+{s:93,n:"镎",sym:"Np",p:7,g:7,cat:"actinide",m:237.00,el:"[Rn]5f⁴6d¹7s²",neg:1.36},
+{s:94,n:"钚",sym:"Pu",p:7,g:8,cat:"actinide",m:244.00,el:"[Rn]5f⁶7s²",neg:1.28},
+{s:95,n:"镅",sym:"Am",p:7,g:9,cat:"actinide",m:243.00,el:"[Rn]5f⁷7s²",neg:1.30},
+{s:96,n:"锔",sym:"Cm",p:7,g:10,cat:"actinide",m:247.00,el:"[Rn]5f⁷6d¹7s²",neg:1.30},
+{s:97,n:"锫",sym:"Bk",p:7,g:11,cat:"actinide",m:247.00,el:"[Rn]5f⁹7s²",neg:1.30},
+{s:98,n:"锎",sym:"Cf",p:7,g:12,cat:"actinide",m:251.00,el:"[Rn]5f¹⁰7s²",neg:1.30},
+{s:99,n:"锿",sym:"Es",p:7,g:13,cat:"actinide",m:252.00,el:"[Rn]5f¹¹7s²",neg:1.30},
+{s:100,n:"镄",sym:"Fm",p:7,g:14,cat:"actinide",m:257.00,el:"[Rn]5f¹²7s²",neg:1.30},
+{s:101,n:"钔",sym:"Md",p:7,g:15,cat:"actinide",m:258.00,el:"[Rn]5f¹³7s²",neg:1.30},
+{s:102,n:"锘",sym:"No",p:7,g:16,cat:"actinide",m:259.00,el:"[Rn]5f¹⁴7s²",neg:1.30},
+{s:103,n:"铹",sym:"Lr",p:7,g:17,cat:"actinide",m:266.00,el:"[Rn]5f¹⁴7s²7p¹",neg:1.30},
+{s:104,n:"𬬻",sym:"Rf",p:7,g:4,cat:"transition",m:267.00,el:"[Rn]5f¹⁴6d²7s²",neg:0},
+{s:105,n:"𬭊",sym:"Db",p:7,g:5,cat:"transition",m:268.00,el:"[Rn]5f¹⁴6d³7s²",neg:0},
+{s:106,n:"𬭳",sym:"Sg",p:7,g:6,cat:"transition",m:269.00,el:"[Rn]5f¹⁴6d⁴7s²",neg:0},
+{s:107,n:"𬭛",sym:"Bh",p:7,g:7,cat:"transition",m:270.00,el:"[Rn]5f¹⁴6d⁵7s²",neg:0},
+{s:108,n:"𬭶",sym:"Hs",p:7,g:8,cat:"transition",m:277.00,el:"[Rn]5f¹⁴6d⁶7s²",neg:0},
+{s:109,n:"鿏",sym:"Mt",p:7,g:9,cat:"transition",m:278.00,el:"[Rn]5f¹⁴6d⁷7s²",neg:0},
+{s:110,n:"𫟼",sym:"Ds",p:7,g:10,cat:"transition",m:281.00,el:"[Rn]5f¹⁴6d⁸7s²",neg:0},
+{s:111,n:"𬬭",sym:"Rg",p:7,g:11,cat:"transition",m:282.00,el:"[Rn]5f¹⁴6d⁹7s²",neg:0},
+{s:112,n:"鎶",sym:"Cn",p:7,g:12,cat:"transition",m:285.00,el:"[Rn]5f¹⁴6d¹⁰7s²",neg:0},
+{s:113,n:"鉨",sym:"Nh",p:7,g:13,cat:"post-transition",m:286.00,el:"[Rn]5f¹⁴6d¹⁰7s²7p¹",neg:0},
+{s:114,n:"𫓧",sym:"Fl",p:7,g:14,cat:"post-transition",m:289.00,el:"[Rn]5f¹⁴6d¹⁰7s²7p²",neg:0},
+{s:115,n:"镆",sym:"Mc",p:7,g:15,cat:"post-transition",m:290.00,el:"[Rn]5f¹⁴6d¹⁰7s²7p³",neg:0},
+{s:116,n:"𫟷",sym:"Lv",p:7,g:16,cat:"post-transition",m:293.00,el:"[Rn]5f¹⁴6d¹⁰7s²7p⁴",neg:0},
+{s:117,n:"鿬",sym:"Ts",p:7,g:17,cat:"halogen",m:294.00,el:"[Rn]5f¹⁴6d¹⁰7s²7p⁵",neg:0},
+{s:118,n:"鿫",sym:"Og",p:7,g:18,cat:"noble-gas",m:294.00,el:"[Rn]5f¹⁴6d¹⁰7s²7p⁶",neg:0}
+];
+
+// ─── Category Colors ────────────────────────────────────────────
+const CAT_COLORS = {
+'nonmetal':       [76,175,80],
+'noble-gas':      [156,39,176],
+'alkali-metal':   [233,30,99],
+'alkaline-earth': [255,87,34],
+'metalloid':      [255,152,0],
+'halogen':        [0,188,212],
+'post-transition':[63,81,181],
+'transition':     [255,193,7],
+'lanthanide':     [139,195,74],
+'actinide':       [121,85,72]
+};
+const CAT_NAMES = {
+'nonmetal':'非金属','noble-gas':'稀有气体','alkali-metal':'碱金属','alkaline-earth':'碱土金属',
+'metalloid':'类金属','halogen':'卤素','post-transition':'贫金属','transition':'过渡金属',
+'lanthanide':'镧系','actinide':'锕系'
+};
+
+// ─── Scene Setup ────────────────────────────────────────────────
+const container = document.getElementById('canvas-container');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 1, 100);
+camera.position.set(18,12,22);
+camera.lookAt(0,0,0);
+
+const renderer = new THREE.WebGLRenderer({
+antialias:true,alpha:true,powerPreference:"high-performance"
+});
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.2;
+container.appendChild(renderer.domElement);
+
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;
+controls.dampingFactor=0.08;
+controls.minDistance=10;
+controls.maxDistance=50;
+controls.autoRotate=true;
+controls.autoRotateSpeed=1.2;
+controls.target.set(0,0,0);
+controls.update();
+
+// ─── Lights ─────────────────────────────────────────────────────
+const ambientLight = new THREE.AmbientLight(0x222244,0.6);
+scene.add(ambientLight);
+
+const envLight = new THREE.DirectionalLight(0x8888ff,0.4);
+envLight.position.set(-10,15,-10);
+scene.add(envLight);
+
+const mainLight = new THREE.DirectionalLight(0xffffff,2.2);
+mainLight.position.set(15,25,10);
+mainLight.castShadow=true;
+mainLight.shadow.mapSize.width=1024;
+mainLight.shadow.mapSize.height=1024;
+scene.add(mainLight);
+
+const fillLight = new THREE.DirectionalLight(0x4488ff,0.6);
+fillLight.position.set(-10,0,-15);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0x88aaff,0.8);
+rimLight.position.set(0,-15,5);
+scene.add(rimLight);
+
+// ─── Stars Background ───────────────────────────────────────────
+const starsGeo = new THREE.BufferGeometry();
+const starCount = 3000;
+const starPos = new Float32Array(starCount*3);
+const starSizes = new Float32Array(starCount);
+for(let i=0;i<starCount;i++){
+starPos[i*3]=(Math.random()-0.5)*200;
+starPos[i*3+1]=(Math.random()-0.5)*200;
+starPos[i*3+2]=(Math.random()-0.5)*200;
+starSizes[i]=Math.random()*1.5+0.3;
+}
+starsGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3));
+starsGeo.setAttribute('size',new THREE.BufferAttribute(starSizes,1));
+const starMat = new THREE.PointsMaterial({
+color:0xffffff,size:0.25,transparent:true,opacity:0.6,
+sizeAttenuation:true,blending:THREE.AdditiveBlending
+});
+scene.add(new THREE.Points(starsGeo,starMat));
+
+// ─── Create Element Cards ──────────────────────────────────────
+let elementsGroup = new THREE.Group();
+scene.add(elementsGroup);
+let elementMeshes = [];
+
+function createElementCard(el, angle, y, radius, scale=1) {
+const c = CAT_COLORS[el.cat]||[100,100,100];
+const col = `rgb(${c[0]},${c[1]},${c[2]})`;
+const colLight = `rgb(${Math.min(255,c[0]+60)},${Math.min(255,c[1]+60)},${Math.min(255,c[2]+60)})`;
+const colDark = `rgb(${Math.max(0,c[0]-40)},${Math.max(0,c[1]-40)},${Math.max(0,c[2]-40)})`;
+
+const canvas = document.createElement('canvas');
+canvas.width=256;
+canvas.height=180;
+const ctx=canvas.getContext('2d');
+
+// background
+const grad=ctx.createLinearGradient(0,0,256,180);
+grad.addColorStop(0,colDark);
+grad.addColorStop(0.5,col);
+grad.addColorStop(1,colDark);
+ctx.fillStyle=grad;
+ctx.beginPath();
+ctx.roundRect(8,8,240,164,14);
+ctx.fill();
+
+// border glow
+ctx.shadowColor='rgba(255,255,255,0.08)';
+ctx.shadowBlur=20;
+ctx.strokeStyle='rgba(255,255,255,0.12)';
+ctx.lineWidth=1.5;
+ctx.beginPath();
+ctx.roundRect(8,8,240,164,14);
+ctx.stroke();
+ctx.shadowBlur=0;
+
+// atomic number
+ctx.fillStyle='rgba(255,255,255,0.35)';
+ctx.font='500 22px "Inter","Segoe UI",sans-serif';
+ctx.textAlign='left';
+ctx.textBaseline='top';
+ctx.fillText(el.s,18,18);
+
+// symbol
+ctx.fillStyle='#fff';
+ctx.font='600 72px "Inter","Segoe UI",sans-serif';
+ctx.textAlign='center';
+ctx.textBaseline='middle';
+ctx.shadowColor='rgba(0,0,0,0.3)';
+ctx.shadowBlur=8;
+ctx.fillText(el.sym,128,86);
+ctx.shadowBlur=0;
+
+// name
+ctx.fillStyle='rgba(255,255,255,0.7)';
+ctx.font='400 20px "PingFang SC","Microsoft YaHei","Inter",sans-serif';
+ctx.textAlign='center';
+ctx.textBaseline='bottom';
+ctx.fillText(el.n,128,156);
+
+// mass (tiny)
+ctx.fillStyle='rgba(255,255,255,0.25)';
+ctx.font='400 12px "Inter","Segoe UI",sans-serif';
+ctx.textAlign='right';
+ctx.textBaseline='bottom';
+ctx.fillText(el.m.toFixed(2),236,156);
+
+const texture=new THREE.CanvasTexture(canvas);
+texture.needsUpdate=true;
+
+const geo=new THREE.PlaneGeometry(1.6*scale,1.12*scale);
+const mat=new THREE.MeshStandardMaterial({
+map:texture,transparent:true,
+side:THREE.FrontSide,
+roughness:0.3,metalness:0.1,
+emissive:new THREE.Color(`rgb(${c[0]/6},${c[1]/6},${c[2]/6})`),
+emissiveIntensity:0.15
+});
+const mesh=new THREE.Mesh(geo,mat);
+const px=radius*Math.cos(angle);
+const pz=radius*Math.sin(angle);
+mesh.position.set(px,y,pz);
+mesh.lookAt(px*2,y,pz*2);
+mesh.userData={el,baseScale:scale,baseY:y,baseRadius:radius,baseAngle:angle};
+return mesh;
+}
+
+const PERIOD_COUNTS = [0,2,8,8,18,18,32,32];
+const PERIOD_HEIGHTS = [0, -5.4, -3.6, -1.8, 0, 1.8, 3.6, 5.4];
+const BASE_RADIUS = 7.5;
+
+function buildCylindricalLayout() {
+while(elementsGroup.children.length)elementsGroup.remove(elementsGroup.children[0]);
+elementMeshes=[];
+
+ELEMENTS.forEach(el=>{
+const period=el.p;
+const count=PERIOD_COUNTS[period];
+const idx=ELEMENTS.filter(e=>e.p===period).indexOf(el);
+const angle=(idx/count)*Math.PI*2;
+const y=PERIOD_HEIGHTS[period];
+const mesh=createElementCard(el,angle,y,BASE_RADIUS);
+elementsGroup.add(mesh);
+elementMeshes.push(mesh);
+});
+}
+
+function buildSpiralLayout() {
+while(elementsGroup.children.length)elementsGroup.remove(elementsGroup.children[0]);
+elementMeshes=[];
+
+ELEMENTS.forEach((el,i)=>{
+const t=i/(ELEMENTS.length-1);
+const angle=t*Math.PI*8;
+const y=(t-0.5)*12;
+const radius=4+t*5;
+const mesh=createElementCard(el,angle,y,radius,0.85);
+const p=mesh.position;
+mesh.lookAt(p.x*2,p.y,p.z*2);
+elementsGroup.add(mesh);
+elementMeshes.push(mesh);
+});
+}
+
+let currentLayout='cylindrical';
+buildCylindricalLayout();
+
+// ─── Ground Ring ────────────────────────────────────────────────
+const ringGeo=new THREE.TorusGeometry(BASE_RADIUS+0.4,0.03,8,64);
+const ringMat=new THREE.MeshStandardMaterial({
+color:0x4466aa,transparent:true,opacity:0.15,emissive:0x4466aa,emissiveIntensity:0.1
+});
+const ring=new THREE.Mesh(ringGeo,ringMat);
+ring.rotation.x=Math.PI/2;
+ring.position.y=PERIOD_HEIGHTS[1]-0.8;
+scene.add(ring);
+
+const ring2=ring.clone();
+ring2.position.y=PERIOD_HEIGHTS[7]+0.8;
+scene.add(ring2);
+
+// vertical glow lines
+for(let i=0;i<12;i++){
+const a=(i/12)*Math.PI*2;
+const pts=[];
+for(let j=0;j<=40;j++){
+const t=j/40;
+const y=PERIOD_HEIGHTS[1]-0.8+t*(PERIOD_HEIGHTS[7]-PERIOD_HEIGHTS[1]+1.6);
+pts.push(new THREE.Vector3(BASE_RADIUS*Math.cos(a),y,BASE_RADIUS*Math.sin(a)));
+}
+const lineGeo=new THREE.BufferGeometry().setFromPoints(pts);
+const lineMat=new THREE.LineBasicMaterial({
+color:0x4466aa,transparent:true,opacity:0.04
+});
+scene.add(new THREE.Line(lineGeo,lineMat));
+}
+
+// ─── Legend ────────────────────────────────────────────────────
+const legendEl=document.getElementById('legend');
+Object.entries(CAT_NAMES).forEach(([key,name])=>{
+const c=CAT_COLORS[key];
+const item=document.createElement('div');
+item.className='item';
+item.innerHTML=`<span class="dot" style="background:rgb(${c[0]},${c[1]},${c[2]})"></span>${name}`;
+legendEl.appendChild(item);
+});
+
+// ─── Raycaster ─────────────────────────────────────────────────
+const raycaster=new THREE.Raycaster();
+const pointer=new THREE.Vector2();
+let hovered=null;
+
+function getIntersects(event){
+const rect=renderer.domElement.getBoundingClientRect();
+pointer.x=((event.clientX-rect.left)/rect.width)*2-1;
+pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
+raycaster.setFromCamera(pointer,camera);
+return raycaster.intersectObjects(elementMeshes);
+}
+
+function showInfo(el){
+const panel=document.getElementById('info-panel');
+panel.classList.add('visible');
+document.getElementById('el-symbol').textContent=el.sym;
+document.getElementById('el-name').textContent=el.n;
+document.getElementById('el-number').textContent=`原子序数 ${el.s}`;
+document.getElementById('el-detail').innerHTML=
+`相对原子质量 <span>${el.m.toFixed(2)}</span><br>电子构型 <span>${el.el}</span>${el.neg?`<br>电负性 <span>${el.neg.toFixed(2)}</span>`:''}`;
+document.getElementById('el-sub').innerHTML=
+`周期 <span>${el.p}</span> · 族 <span>${el.g}</span>`;
+const badge=document.getElementById('el-category');
+const c=CAT_COLORS[el.cat];
+badge.textContent=CAT_NAMES[el.cat];
+badge.style.background=`rgba(${c[0]},${c[1]},${c[2]},0.2)`;
+badge.style.color=`rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+function hideInfo(){
+document.getElementById('info-panel').classList.remove('visible');
+}
+
+renderer.domElement.addEventListener('pointermove',(event)=>{
+const hits=getIntersects(event);
+if(hits.length>0){
+const mesh=hits[0].object;
+if(mesh!==hovered){
+if(hovered){
+const ud=hovered.userData;
+hovered.position.set(ud.baseRadius*Math.cos(ud.baseAngle),ud.baseY,ud.baseRadius*Math.sin(ud.baseAngle));
+hovered.scale.set(1,1,1);
+}
+hovered=mesh;
+const ud=mesh.userData;
+const yOffset=0.15;
+mesh.position.set(ud.baseRadius*Math.cos(ud.baseAngle),ud.baseY+yOffset,ud.baseRadius*Math.sin(ud.baseAngle));
+mesh.scale.set(1.18,1.18,1.18);
+showInfo(ud.el);
+}
+}else{
+if(hovered){
+const ud=hovered.userData;
+hovered.position.set(ud.baseRadius*Math.cos(ud.baseAngle),ud.baseY,ud.baseRadius*Math.sin(ud.baseAngle));
+hovered.scale.set(1,1,1);
+hovered=null;
+hideInfo();
+}
+}
+});
+
+// ─── Controls ──────────────────────────────────────────────────
+document.getElementById('btn-rotate').addEventListener('click',()=>{
+controls.autoRotate=!controls.autoRotate;
+document.getElementById('btn-rotate').classList.toggle('active');
+document.getElementById('btn-rotate').textContent=controls.autoRotate?'旋转':'暂停';
+});
+
+document.getElementById('btn-spiral').addEventListener('click',()=>{
+if(currentLayout==='cylindrical'){
+currentLayout='spiral';
+document.getElementById('btn-spiral').textContent='柱形';
+buildSpiralLayout();
+}else{
+currentLayout='cylindrical';
+document.getElementById('btn-spiral').textContent='螺旋';
+buildCylindricalLayout();
+}
+hideInfo();hovered=null;
+});
+
+document.getElementById('btn-reset').addEventListener('click',()=>{
+camera.position.set(18,12,22);
+controls.target.set(0,0,0);
+controls.update();
+});
+
+// ─── Resize ────────────────────────────────────────────────────
+window.addEventListener('resize',()=>{
+camera.aspect=window.innerWidth/window.innerHeight;
+camera.updateProjectionMatrix();
+renderer.setSize(window.innerWidth,window.innerHeight);
+});
+
+// ─── Animate ───────────────────────────────────────────────────
+function animate(){
+requestAnimationFrame(animate);
+controls.update();
+
+// subtle floating for hovered element
+if(hovered){
+const ud=hovered.userData;
+const floatY=ud.baseY+0.15+Math.sin(Date.now()*0.003)*0.05;
+hovered.position.y=floatY;
+}
+
+renderer.render(scene,camera);
+}
+animate();
+
+// finally, show info for first element
+setTimeout(()=>showInfo(ELEMENTS[0]),600);
+
+console.log('3D Periodic Table ready — 118 elements');
+</script>
+</body>
+</html>
